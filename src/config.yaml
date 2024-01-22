@@ -1,0 +1,201 @@
+# The unique identifier for each federated learning task
+task_id: ""
+task_name: ""
+
+# Network
+graph:
+  # True means centralized federated, nodes communicate with the server; False means decentralized, nodes communicate with other nodes.
+  centralized: True
+  # graph type, including CompleteGraph, ErdosRenyi, TwoCastle, RingCastle, OctopusGraph. If graph is centralized, we use CompleteGraph for default.
+  graph_type: "CompleteGraph"
+  # Network connectivity
+  connectivity: 0.7
+  # The parameter of TwoCastle graph.
+  castle_k: 3
+  # The parameter of RingCastle graph.
+  castle_cnt: 2
+  # The parameter of OctopusGraph graph.
+  head_cnt: 5
+  # The parameter of OctopusGraph graph.
+  head_byzantine_cnt: 1
+  # The parameter of OctopusGraph graph.
+  hand_byzantine_cnt: 1
+  # Total number of nodes
+  nodes_cnt: 10
+  # Byzantine nodes number
+  byzantine_cnt: 0
+  # Graph is time-varying, True means time varying.
+  time_change: False
+  # Is the Byzantine at the end of the node sequence, or randomly in the node sequence, True means at the end of the node sequence.
+  sequence_byzantine: True
+
+
+# Provide dataset and federated learning simulation related configuration.
+data:
+  # The name of the dataset, support: Mnist, Cifar10,  Cifar100 and Synthetic
+  dataset: "Mnist"
+  # The type of statistical simulation, options: iid, successive, empty, share, noniid_class,
+  # noniid_class_unbalance, noniid_dir.  (str)
+  #    `iid` means independent and identically distributed data.
+  #    `successive` means continuous equal scaling of the data.
+  #    `empty` means empty dataset for each node.
+  #    `share`means each node has full dataset.
+  #    `noniid_class` means non-independent and identically distributed data, means partitioning the dataset
+  #    by label classes,  for classified datasets.
+  #    `noniid_class_unbalance` means non-independent and identically distributed data, means partitioning the dataset
+  #    by label classes but unbalanced, each node may have big different size of dataset, for classified datasets.
+  #    `noniid_dir` means using Dirichlet process to simulate non-iid data, for classified datasets.
+  partition_type: "iid"
+  #  (str): Similar to  train_partition_type, default `share`, other partition type can also be set
+  test_partition_type: "share"
+  #  (int): The number of classes in each node. Only applicable when the partition_type is `noniid_class` and `noniid_class_unbalance`.
+  class_per_node: 4
+  # (int): The minimal number of samples in each node. It is applicable for `noniid_dir` partition of classified dataset.
+  min_size: 10
+  #  (float): The unbalanced parameter of samples in each node. Default 0.1. It is applicable for `noniid_dir`
+  #           partition of classified dataset.
+  alpha: 0.1
+  #  (str): The name of iter generator, including random, order, order_circle, full, byrd_saga, customized.
+  generator: "random"
+  #  (int): Data batch needed for one computation during the training process.
+  train_batch_size: 32
+  #  (float): (0, 1], test dataset of the local node of the scale used for the test.
+  test_rate: 1
+
+# The name of the model for training, support: rnn, resnet, resnet18, resnet50, vgg9,
+#  simple_cnn, softmax_regression, linear_regression, logistic_regression.
+model: "softmax_regression"
+# load pretrained model, only suit for model resnet18 and dataset Cifar10/Cifar100.
+model_pretrained: True
+
+controller:
+  track: False  # Whether track controller metrics using the tracking controller.
+  rounds: 10  # Total training round. If epoch_or_iteration = "epoch", we use this control total number of training rounds in controller view.
+  rounds_iterations: 5000 # Total training iterations round. If epoch_or_iteration = "iteration", we use this control total number of training rounds in controller view.
+  print_interval: 500 # If epoch_or_iteration = "iteration", we use this to control the print interval in panel.
+  nodes_per_round: 10  # The number of nodes to train in each round, this should smaller or equal than the node size.
+  test_every_epoch: 1  # The frequency of testing for node.epoch_or_iteration==epoch: conduct testing every N round.
+  test_every_iteration: 500  # The frequency of testing for node.epoch_or_iteration==iteration: conduct testing every N round.
+  save_model_every_epoch: 10  # The frequency of saving model for node.epoch_or_iteration==epoch: save model every N round.
+  save_model_every_iteration: 5000. # The frequency of saving model for node.epoch_or_iteration==iteration. We recommend this same like rounds_iterations. Else same like rounds.
+  save_model_path: ""  # The path to save model. Default path is root directory of the library.
+  batch_size: 32  # The batch size of test_in_server.
+  test_all: False  # Whether test all nodes or only selected nodes.
+  test_byzantine: False # Whether test byzantine nodes or only honest selected nodes.
+  random_selection: True  # Whether select clients to train randomly.
+  # The rule to aggregate node uploaded models, options: "Mean",  "MeanWeightMH", "NoCommunication", "Median",
+         #"GeometricMedian", "Krum", "MKrum", "TrimmedMean", "RemoveOutliers", "Faba", "Phocas", "IOS", "Brute", "Bulyan",
+        # "CenteredClipping"
+    # FedAvg aggregates models using weighted average, where the weights are data size of clients.
+    # equal aggregates model by simple averaging.
+  aggregation_rule: "Mean"
+  # The content of aggregation, options: all, parameters.
+    # all means aggregating models using state_dict, including both model parameters and persistent buffers like BatchNorm stats.
+    # parameters means aggregating only model parameters.
+  aggregation_content: "all"
+  #Byzantine attack type,
+  # including "NoAttack", "Gaussian", "SignFlipping", "SampleDuplicating", "ZeroValue", "Isolation", "LittleEnough"
+  attack_type: "NoAttack"
+  # Whether Byzantine nodes are actually involved in training and aggregation.
+  byzantine_actually_train: True
+  # If you want to record train and test losses...into file, set record_in_file as True.
+  record_in_file: True
+  # record root name
+  record_root: "record"
+
+
+node:
+  track: False  # Whether track server metrics using the tracking service.
+  batch_size: 32  # The batch size of training in client.
+  test_batch_size: 5  # The batch size of testing in client.
+  local_epoch: 1  # The number of epochs to train in each round.
+  local_iteration: 1 # The number of iterations to train in each round
+  # "iteration" or "epoch"
+  # epoch means all train data in node train once, the local_epoch parameter determines how many epochs a single node is locally trained before communicating with other nodes.
+  # iteration means a batch data in node train once, the local_iteration parameter determines how many iterations a single node is locally trained before communicating with other node
+  epoch_or_iteration: "iteration"
+  optimizer:
+    type: "SGD"  # The name of the optimizer, options: Adam, SGD.
+    use_momentum: True # Decide to use momentum or not.
+    # use_another_momentum=True means m_t = v_t * m_{t-1} + (1-v_t) * g_t , m is momentum, v is momentum step, g is gradient.
+    # Else, False means the original momentum update way in SGD, m_t = v_t * m_{t-1} + g_t.
+    use_another_momentum: False
+    weight_decay: 0
+  local_test: False  # Whether test the trained models in clients before uploading them to the server.
+  # The message the node choose to sent and aggregate. Including "model", "gradient"
+  message_type_of_node_sent: "model"
+  # The learning rate or momentum controller class name, include "ConstantLr", "OneOverSqrtKLr", "OneOverKLr", "LadderLr",
+  # "ConstantThenDecreasingLr", "DecreasingStepLr", "FollowOne".
+  lr_controller: "ConstantLr"
+  momentum_controller: "FollowOne"
+  # For the online setting, we use this parameter to decide calculate static regret or not.
+  calculate_static_regret: False
+
+ # learning rate controller parameter.
+lr_controller_param:
+  init_lr: 0.1 # initialize learning rate
+  decreasing_iter_ls:  # default None, the parameter of "LadderLr"
+  proportion_ls: # default None, the parameter of "LadderLr"
+  final_proportion: 0.1 # the parameter of "OneOverSqrtKLr", "OneOverKLr"
+  a: # default None, the parameter of "OneOverSqrtKLr", "OneOverKLr"
+  b: # default None, the parameter of "OneOverSqrtKLr", "OneOverKLr"
+  boundary_iteration: 1000 # the parameter of "ConstantThenDecreasingLr"
+  boundary_epoch: 2 # the parameter of "ConstantThenDecreasingLr"
+  ratio: 1 # the parameter of "ConstantThenDecreasingLr"
+  init_momentum: 0.1 # the momentum step v is (1-init_momentum), m_t = v_t * m_{t-1} + (1-v_t) * g_t
+  multiple_ratio: 2 # the parameter of "FollowOne", means v = (1-multiple_ratio*input_lr)
+  step_interval_interation: 800 # the parameter of DecreasingStepLr
+  step_interval_epoch: 4 # the parameter of DecreasingStepLr
+  step_ratio: 0.85 # the parameter of DecreasingStepLr
+
+# The detail parameters of robust aggregation rules.
+aggregation_param:
+  # The parameter of GeometricMedian.
+  max_iter: 80
+  # The parameter of GeometricMedian.
+  eps: 1e-5
+  # The parameter of MKrum.
+  krum_m: 2
+  # The parameter of TrimmedMean, IOS. True mean use the true byzantine neighbor to trim the messages.
+  exact_byz_cnt: True
+  # The parameter of TrimmedMean, IOS. When exact_byz_cnt is False, use byz_cnt to control the trim number.
+  # byz_cnt=-1 means use the Maximum for all Byzantine neighbours. This is for the decentralized graph.
+  # For normal, byz_cnt is the number of one side to be cut.
+  byz_cnt: -1
+  # The parameter of IOS, CenteredClipping. If weight_mh is True, means we use mh double stochastic matrix to aggregation the messages.
+  #        Else, we use mean of equal weights aggregation.
+  weight_mh: True
+  # The parameter of CenteredClipping. The threshold choose way, including "estimation", "true", "parameter"
+  threshold_selection: "parameter"
+  # The parameter of CenteredClipping. When threshold selection is "parameter", we use threshold to control the threshold.
+  threshold:  0.1
+
+# The detail parameters of attacks.
+attacks_param:
+  # The parameter of Gaussian attack, SignFlipping, SampleDuplicating,
+  # For Gaussian use_honest_mean is True means use the honest neighbors messages means as gaussian distribution mean, and add no other messages.
+   # Else, use the parameter mean as gaussian mean. And the byzantine node message.
+  use_honest_mean: True
+  # The parameter of Gaussian attack, the gaussian distribution mean.
+  mean: 0
+  # The parameter of Gaussian attack, the gaussian distribution standard deviation.
+  std: 1
+  # The parameter of SignFlipping attack, the scale to sign.
+  sign_scale: -4
+  # The parameter of SampleDuplicating attack, means sample duplicating scale.
+  sample_scale: 1
+  # The parameter of LittleEnough attack. little_scale,  None, 1, 2,... A little is enough attack scale. None means auto calculate the perfect scale.
+  #                                       int means use the little_scale.
+  little_scale: None
+
+
+gpu: 0  # The number of GPU which be used in training. -1 means CPU. 0 means gpu0, 1 means gpu2...
+
+seed: 0  # The random seed.
+
+tracking:  # The configurations for logging and tracking.
+  database: ""  # The path of local dataset, sqlite3.
+  log_file: ""
+  log_level: "INFO"  # The level of logging.
+  metric_file: ""
+  save_every: 1
