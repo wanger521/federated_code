@@ -183,7 +183,7 @@ def metric_plotter(metric_names, dataset, model, conf, extra, data_root="../../"
 
 
 def main():
-    data_root = "../../applications/federated_robust_online_gradient_descent/"
+    data_root = "../../d_ogd/"
     # metric_names = [metric.TEST_ACCURACY, metric.TEST_LOSS]
     metric_names = [metric.TEST_ACCURACY, metric.TRAIN_STATIC_REGRET]
     dataset = "Mnist"
@@ -268,7 +268,7 @@ def draw_yeCifar10():
 
 
 def draw_dongCifar10():
-    data_root = "../../applications/federated_robust_online_gradient_descent/"
+    data_root = "../../applications/d_ogd/"
     metric_names = [metric.TEST_ACCURACY, metric.TRAIN_STATIC_REGRET]
     # metric_names = [metric.TEST_LOSS, metric.TRAIN_LOSS]
     dataset = "Cifar10"
