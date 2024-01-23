@@ -62,7 +62,7 @@ def metric_plotter(metric_names, dataset, model, conf, extra, data_root="../../"
     for i in range(len(aggregation_rules)):
         for j in range(len(attack_types)):
             path_list[-1] = aggregation_rules[i]
-            file_name = "{}_{}_{}{}_{}_{}_lr{}_{}_mo{}_{}.pkl".format(attack_types[j], graph_messages[j],
+            file_name = "{}_{}_{}{}_{}_{}_lr{}_{}_mo{}_{}.pkl".format(attack_types[j], graph_messages[j], #attack_types[j][:4]
                                                                       conf["epoch_or_iteration"], train_rounds,
                                                                       conf["task_name"],
                                                                       conf["lr_controller"][:2] +
@@ -79,7 +79,7 @@ def metric_plotter(metric_names, dataset, model, conf, extra, data_root="../../"
                 if data[metric_names[k]][i][j] is None or len(data[metric_names[k]][i][j]) == 0:
                     data[metric_names[k]][i][j] = [random.uniform(0, 2000) for _ in range(train_rounds + 1)]
                 assert data[metric_names[k]][i][j] is not None and len(data[metric_names[k]][i][j]) != 0, \
-                    "no {} data in save datas.".format(metric_names[k])
+                    "no {} data in save data.".format(metric_names[k])
                 if "avg" in data[metric_names[k]][i][j]:
                     data[metric_names[k]][i][j] = data_part[metric_names[k]]["avg"]
                 if metric_names[k] in y_lim_list:
@@ -105,7 +105,7 @@ def metric_plotter(metric_names, dataset, model, conf, extra, data_root="../../"
         else:
             x_iter[metric_names[k]] = test_iters
 
-    assert train_iters[-1] == test_iters[-1], "The data saved for training and the data saved for testing " \
+    assert train_iters[-1] == test_iters[-1], "The data saved for training and the datas saved for testing " \
                                               "should have the same range in the coordinate dimension of x."
 
     # Plot the curve
@@ -284,7 +284,7 @@ def draw_dongCifar10():
             "init_lr": 0.025,
             "momentum_controller": "FollowOne",
             "init_momentum": 0.1,
-            "partition_type": "iid",
+            "partition_type": "noniid_class",  # "iid"
             "task_name": "",
             "use_momentum": True
             }
@@ -299,8 +299,8 @@ def draw_dongCifar10():
     # extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"]
     # extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
     #                              "sample-duplicating attack"]
-    extra["attack_types"] = ["SignFlipping", "Gaussian",  "SampleDuplicating"]
-    extra["attack_show_name"] = ["sign-flipping attack","Gaussian attack",  "sample-duplicating attack"]
+    extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian",  "SampleDuplicating"]
+    extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",  "sample-duplicating attack"]
     extra["y_lim"] = [[0, 3], [0, 10000]]
 
     metric_plotter(metric_names=metric_names, dataset=dataset, model=model, conf=conf, extra=extra, data_root=data_root,

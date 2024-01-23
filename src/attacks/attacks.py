@@ -2,7 +2,7 @@ import copy
 import math
 import scipy.stats
 import torch
-from src.data.make_data import FEATURE_TYPE
+from src.datas.make_data import FEATURE_TYPE
 
 from src.attacks.base_attack import BaseAttack
 

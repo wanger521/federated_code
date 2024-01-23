@@ -804,7 +804,7 @@ class BaseController(object):
             else "iteration{}".format(self.conf.controller.rounds_iterations)
 
         self.title = "{}_{}_{}_h{}_b{}_{}_{}_{}_lr{}_{}_mo{}_{}".format(
-            self.conf.controller.attack_type,
+            self.conf.controller.attack_type[:4],
             self.conf.graph.graph_type[:3], centralized[:3],
             self.graph_.honest_size,
             self.graph_.byzantine_size, end_round,

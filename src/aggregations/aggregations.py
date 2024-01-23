@@ -5,7 +5,7 @@ import math
 import torch
 
 from src.aggregations.base_aggregation import DistributedAggregation
-from src.data.make_data import FEATURE_TYPE
+from src.datas.make_data import FEATURE_TYPE
 from scipy import stats
 from geom_median.torch import compute_geometric_median
 from src.library.logger import create_logger

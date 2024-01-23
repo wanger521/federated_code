@@ -5,9 +5,9 @@ from importlib import import_module
 import torch
 
 import src
-from src.data.federated_dataset import construct_federated_datasets
-from src.data.make_data import *
-from src.data.partition import partition_classification as partition, partition_continuous
+from src.datas.federated_dataset import construct_federated_datasets
+from src.datas.make_data import *
+from src.datas.partition import partition_classification as partition, partition_continuous
 from src.coordinate import init_conf, init_logger, _set_random_seed
 from src.library import graph
 from src.library.graph import CompleteGraph, ErdosRenyi, TwoCastle, RingCastle, OctopusGraph

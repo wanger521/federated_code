@@ -4,7 +4,7 @@ import traceback
 
 import torch
 
-from src.data.make_data import FEATURE_TYPE
+from src.datas.make_data import FEATURE_TYPE
 
 
 def log(*k, **kw):

@@ -15,7 +15,7 @@ from torchvision.models import ResNet18_Weights
 
 from src.aggregations import aggregations
 from src.attacks import attacks
-from src.data.federated_dataset import construct_federated_datasets
+from src.datas.federated_dataset import construct_federated_datasets
 from src.library import graph
 from src.library.cache_io import file_exist
 from src.library.logger import create_logger

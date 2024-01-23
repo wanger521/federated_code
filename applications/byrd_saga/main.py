@@ -72,9 +72,6 @@ def run():
     args = parser.parse_args()
     logger.info(f"arguments: {args}")
 
-    # register the ByrdSagaNode as Node Class.
-    src.register_node(ByrdSagaNode)
-
     config = {
         "data": {"dataset": args.dataset, "partition_type": args.partition_type,
                  "train_batch_size": args.batch_size, "test_rate": args.test_rate,
@@ -106,6 +103,10 @@ def run():
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     #  If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.
     os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb=256"
+
+    # register the ByrdSagaNode as Node Class.
+    src.register_node(ByrdSagaNode)
+
     src.init(config)
     src.run()
 

@@ -83,7 +83,7 @@ class SGDGrad(torch.optim.SGD):
                     else:
                         d_p = buf
                 # We make the grad change to dp, because we have to send this message to the controller to aggregate.
-                # p.grad.data = copy.deepcopy(d_p)
+                # p.grad.datas = copy.deepcopy(d_p)
 
                 grad_tensor.append(d_p)
         return parameters_to_vector(grad_tensor)

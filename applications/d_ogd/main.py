@@ -1,9 +1,9 @@
 import argparse
+import copy
 import sys, os
 
 sys.path.append(os.path.split(os.path.split(sys.path[0])[0])[0])
 
-from copy import copy
 import src
 from src.library.logger import create_logger
 from src.tracking import metric
@@ -37,7 +37,7 @@ def run():
     parser.add_argument("--optimizer_type", type=str, default="SGD", choices=["SGD", "Adam"], help="")
     parser.add_argument("--weight_decay", type=float, default=0)
     # default False, not use_momentum
-    parser.add_argument("--use_momentum",  action="store_true",
+    parser.add_argument("--use_momentum", action="store_true",
                         help="SGD use momentum or not")
     parser.add_argument("--lr_controller", type=str, default="ConstantLr", choices=["ConstantLr", "OneOverSqrtKLr",
                                                                                     "OneOverKLr", "LadderLr",
@@ -52,7 +52,7 @@ def run():
                                                                                     "TwoCastle", "RingCastle",
                                                                                     "OctopusGraph"], help="")
     # default False, decentralized
-    parser.add_argument("--centralized",   action="store_true",
+    parser.add_argument("--centralized", action="store_true",
                         help="True means the frame work as centralized, else decentralized.")
     parser.add_argument("--nodes_cnt", type=int, default=10, help="The all nodes in graph.")
     parser.add_argument("--byzantine_cnt", type=int, default=2, help="The byzantine nodes in graph.")
@@ -101,7 +101,7 @@ def run():
         config["node"] = {"calculate_static_regret": True}
     config["controller"]["print_interval"] = config["controller"]["test_every_iteration"]
 
-    config_online = copy(config)
+    config_online = copy.deepcopy(config)
     config_online["task_name"] = metric.ONLINE_BEST_MODEL
     config_online["data"]["partition_type"] = "iid"
     config_online["controller"] = {"nodes_per_round": 1, "random_selection": False,
@@ -117,14 +117,15 @@ def run():
 
     # config_online["node"]["batch_size"] = config["node"]["batch_size"] * config["graph"]["nodes_cnt"]
     config_online["lr_controller_param"]["boundary_epoch"] = int(config_online["controller"]["rounds"] * 0.3)
-    config_online["lr_controller_param"]["boundary_iteration"] = int(config_online["controller"]["rounds_iterations"] * 0.3)
+    config_online["lr_controller_param"]["boundary_iteration"] = int(
+        config_online["controller"]["rounds_iterations"] * 0.3)
     config_online["controller"]["save_model_every_epoch"] = config_online["controller"]["rounds"]
     config_online["controller"]["save_model_every_iteration"] = config_online["controller"]["rounds_iterations"]
     config_online["graph"] = {"centralized": True, "nodes_cnt": 1, "byzantine_cnt": 0}
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     #  If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.
-    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb=128"
+    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb=256"
 
     src.init(config_online)
     src.run()

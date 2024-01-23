@@ -3,7 +3,7 @@ import itertools
 import math
 
 import torch
-from src.data.make_data import FEATURE_TYPE
+from src.datas.make_data import FEATURE_TYPE
 from scipy import stats
 from src.library.logger import create_logger
 
