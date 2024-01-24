@@ -45,7 +45,7 @@ def metric_plotter(metric_names, dataset, model, conf, extra, data_root="../../"
             "{}_{}_h{}_b{}".format(conf["graph_type"][:3], conf["centralized"][:3], honest_cnt, byzantine_cnt))
 
     # colors = ['black','gold', 'skyblue', 'brown', 'olive', 'blue', 'darkgray', 'purple']
-    markers = ['s', 'o', 'p',  'v', '<', '>',   '*', 'X', 'D', '1']
+    markers = ['s', 'o', 'p', 'v', '<', '>', '*', 'X', 'D', '1']
     line_styles = ['-', '-.', ':', '--', '-', '-.', ':', '--', '-.', ':']
 
     data = dict()
@@ -62,7 +62,8 @@ def metric_plotter(metric_names, dataset, model, conf, extra, data_root="../../"
     for i in range(len(aggregation_rules)):
         for j in range(len(attack_types)):
             path_list[-1] = aggregation_rules[i]
-            file_name = "{}_{}_{}{}_{}_{}_lr{}_{}_mo{}_{}.pkl".format(attack_types[j], graph_messages[j], #attack_types[j][:4]
+            file_name = "{}_{}_{}{}_{}_{}_lr{}_{}_mo{}_{}.pkl".format(attack_types[j][:4], graph_messages[j],
+                                                                      # attack_types[j][:4]
                                                                       conf["epoch_or_iteration"], train_rounds,
                                                                       conf["task_name"],
                                                                       conf["lr_controller"][:2] +
@@ -152,7 +153,7 @@ def metric_plotter(metric_names, dataset, model, conf, extra, data_root="../../"
                               else data[metric_names[row]][i][column][::draw_x],
                               label=labels[i],
                               marker=markers[i % 10],
-                              markersize=8,
+                              markersize=5,
                               linestyle=line_styles[i % 10])  # color=colors[i],
 
     lines, labels = fig.axes[-1].get_legend_handles_labels()
@@ -164,17 +165,19 @@ def metric_plotter(metric_names, dataset, model, conf, extra, data_root="../../"
                    bbox_to_anchor=(-0.0005, 0.15, 1, 0.7))  # ,bbox_to_anchor=(0.5, -0.2), mode="expand"
     else:
         plt.subplots_adjust(bottom=0.4 / len(rows) if len(rows) > 1 else 0.35)  # judge label location
-        fig.legend(lines, labels, loc='lower center', ncol=max(1, int(len(labels) / 2)), fontsize=LEGEND_SIZE,
+        fig.legend(lines, labels, loc='lower center', ncol=max(max(1, int(len(labels) / 2)), len(columns)),
+                   fontsize=LEGEND_SIZE,
                    bbox_to_anchor=(-0.0005, -0.005, 1, 0.7))  # ,bbox_to_anchor=(0.5, -0.2), mode="expand"
 
-    picture_name = "{}_{}_lr{}_{}_mo{}_{}.png".format("_".join(metric_names),
-                                                      conf["lr_controller"][:2] +
-                                                      conf["lr_controller"][-4:-2],
-                                                      conf["init_lr"],
-                                                      conf["momentum_controller"][:2] +
-                                                      conf["momentum_controller"][-4:-2],
-                                                      conf["init_momentum"],
-                                                      conf["partition_type"])
+    picture_name = "{}_{}_lr{}_{}_mo{}_{}_{}.png".format("_".join(metric_names),
+                                                         conf["lr_controller"][:2] +
+                                                         conf["lr_controller"][-4:-2],
+                                                         conf["init_lr"],
+                                                         conf["momentum_controller"][:2] +
+                                                         conf["momentum_controller"][-4:-2],
+                                                         conf["init_momentum"],
+                                                         conf["partition_type"],
+                                                         conf["centralized"][:3])
     path_list[0] = "pictures"
     save_path = get_root_path(picture_name, path_list[:-1], data_root, create_if_not_exist=True)
     plt.savefig(save_path, dpi=100, bbox_inches='tight')
@@ -255,7 +258,7 @@ def draw_yeCifar10():
         conf["init_momentum"] = 0
 
     extra = dict()
-    extra["aggregation_rules"] = ["Mean", "TrimmedMean",  "CenteredClipping", "IOS"]
+    extra["aggregation_rules"] = ["Mean", "TrimmedMean", "CenteredClipping", "IOS"]
     extra["aggregation_show_name"] = ["mean", "trimmed mean", "centered clipping", "IOS"]
     # extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"]
     # extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
@@ -295,18 +298,64 @@ def draw_dongCifar10():
 
     extra = dict()
     extra["aggregation_rules"] = ["Mean", "Faba", "CenteredClipping", "Median", "Phocas", "GeometricMedian"]
-    extra["aggregation_show_name"] = ["mean", "FABA", "centered clipping",  "Median", "Phocas", "geometric median"]
+    extra["aggregation_show_name"] = ["mean", "FABA", "centered clipping", "Median", "Phocas", "geometric median"]
     # extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"]
     # extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
     #                              "sample-duplicating attack"]
-    extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian",  "SampleDuplicating"]
-    extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",  "sample-duplicating attack"]
+    extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"]
+    extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
+                                 "sample-duplicating attack"]
     extra["y_lim"] = [[0, 3], [0, 10000]]
 
     metric_plotter(metric_names=metric_names, dataset=dataset, model=model, conf=conf, extra=extra, data_root=data_root,
                    draw_x=200)
 
+
+def draw_dongMnist():
+    data_root = "../../applications/d_ogd/"
+    metric_names = [metric.TEST_ACCURACY, metric.TRAIN_STATIC_REGRET]
+    # metric_names = [metric.TEST_LOSS, metric.TRAIN_LOSS]
+    dataset = "Mnist"
+    model = "logistic_regression"
+    conf = {"graph_type": "ErdosRenyi",
+            "centralized": "decentralized",  # "centralized"
+            "nodes_cnt": 10,
+            "byzantine_cnt": 2,
+            "epoch_or_iteration": "iteration",
+            "rounds": 10,
+            "rounds_iterations": 4000,
+            "lr_controller": "DecreasingStepLr",
+            "init_lr": 0.1,
+            "momentum_controller": "FollowOne",
+            "init_momentum": 0.1,
+            "partition_type": "noniid_dir",  # "iid"
+            "task_name": "",
+            "use_momentum": True
+            }
+
+    if conf["use_momentum"] is False:
+        conf["momentum_controller"] = "ConstantLr"
+        conf["init_momentum"] = 0
+
+    extra = dict()
+    extra["aggregation_rules"] = ["Mean", "Faba", "CenteredClipping", "Median", "Phocas", "GeometricMedian",
+                                  "Krum", "TrimmedMean", "Bulyan"]
+    extra["aggregation_show_name"] = ["mean", "FABA", "centered clipping", "Median", "Phocas", "geometric median",
+                                      "Krum", "trimmed mean", "Bulyan"]
+    # extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"]
+    # extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
+    #                              "sample-duplicating attack"]
+    extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating", "LittleEnough"]
+    extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
+                                 "sample-duplicating attack", "little enough"]
+    extra["y_lim"] = [[0, 3], [0, 10000]]
+
+    metric_plotter(metric_names=metric_names, dataset=dataset, model=model, conf=conf, extra=extra, data_root=data_root,
+                   draw_x=200)
+
+
 if __name__ == '__main__':
     # main()
     # draw_yeCifar10()
-    draw_dongCifar10()
+    # draw_dongCifar10()
+    draw_dongMnist()

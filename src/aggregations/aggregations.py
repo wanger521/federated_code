@@ -81,7 +81,7 @@ class MeanWeightMH(DistributedAggregation):
     def mh_rule(graph, selected_nodes_cid):
         # Metropolis-Hastings rule
         node_size = graph.number_of_nodes()
-        W = torch.eye(node_size, dtype=FEATURE_TYPE)
+        W = torch.ones((graph.node_size, graph.node_size), dtype=FEATURE_TYPE) / (graph.node_size)
         for i in range(node_size):
             if i not in selected_nodes_cid:
                 continue
@@ -440,12 +440,12 @@ class IOS(DistributedAggregation):
         """If weight_mh is True, means we use mh Double stochastic matrix to aggregation the messages.
         Else, we use mean of equal weights aggregation. """
         if graph.centralized:
-            W = torch.eye(graph.node_size, dtype=FEATURE_TYPE)
+            W = torch.ones((graph.node_size, graph.node_size), dtype=FEATURE_TYPE) / (graph.node_size)
         else:
             if weight_mh is True:
                 W = MeanWeightMH.mh_rule(graph, selected_nodes_cid)
             else:
-                W = torch.eye(graph.node_size, dtype=FEATURE_TYPE)
+                W = torch.ones((graph.node_size, graph.node_size), dtype=FEATURE_TYPE) / (graph.node_size)
                 max_degree = -1
                 for i in range(graph.node_size):
                     if i not in selected_nodes_cid:
@@ -708,21 +708,36 @@ class CenteredClipping(DistributedAggregation):
 
     def get_true_threshold(self, all_messages, node):
         """If threshold selection is true."""
-        # TODO: some bad results append, need to fix
+        # TODO: some bad results append in centralized graph, need to fix
         # find the bottom-(honest-size) weights as the estimated threshold
-        local_model = all_messages[node]
+        if self.graph.centralized:
+            local_model = self.memory
 
-        weighted_avg_norm = sum([
-            self.W[node][n] * (all_messages[n] - local_model).norm() ** 2
-            for n in self.neighbors_select_honest_list[node]
-        ])
-        cum_weight = sum([
-            self.W[node][n] for n in self.neighbors_select_byzantine_list[node]
-        ])
-        return torch.sqrt(weighted_avg_norm / cum_weight)
+            weighted_avg_norm = sum([
+                self.W[node][n] * (all_messages[n] - local_model).norm() ** 2
+                for n in self.graph.honest_nodes
+            ])
+            cum_weight = sum([
+                self.W[node][n] for n in self.graph.byzantine_nodes
+            ])
+            return torch.sqrt(weighted_avg_norm / cum_weight)
+        else:
+            local_model = all_messages[node]
+
+            weighted_avg_norm = sum([
+                self.W[node][n] * (all_messages[n] - local_model).norm() ** 2
+                for n in self.neighbors_select_honest_list[node]
+            ])
+            cum_weight = sum([
+                self.W[node][n] for n in self.neighbors_select_byzantine_list[node]
+            ])
+            return torch.sqrt(weighted_avg_norm / cum_weight)
 
     def centered_clipping(self, all_messages, node):
         """If graph is centralized."""
+        if self.memory is None:
+            self.memory = torch.zeros_like(all_messages[node])
+
         if self.threshold_selection == 'estimation':
             threshold = self.get_threshold_estimate(all_messages, node)
         elif self.threshold_selection == 'true':
@@ -732,22 +747,18 @@ class CenteredClipping(DistributedAggregation):
         else:
             raise ValueError('invalid threshold setting')
 
-        if self.memory is None:
-            self.memory = torch.zeros_like(all_messages)
-        diff = torch.zeros_like(self.memory[node])
+        diff = torch.zeros_like(self.memory)
         for n in self.neighbors_select_list[node] + [node]:
             model = all_messages[n]
-            norm = (model - self.memory[node]).norm()
+            norm = (model - self.memory).norm()
             if norm > threshold:
-                diff += threshold * (model - self.memory[node]) / norm
+                diff += threshold * (model - self.memory) / norm
             else:
-                diff += model - self.memory[node]
+                diff += (model - self.memory)
         diff /= (len(self.neighbors_select_list[node]) + 1)
-        self.memory[node] = self.memory[node] + diff
-        for node_ in self.selected_nodes_cid:
-            if node_ != node:
-                self.memory[node_] = self.memory[node]
-        return self.memory[node]
+        self.memory = self.memory + diff
+
+        return self.memory
 
     def self_centered_clipping(self, all_messages, node):
         """If graph is decentralize."""

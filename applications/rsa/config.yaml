@@ -2,6 +2,9 @@
 task_id: ""
 task_name: ""
 
+index: 0
+gpu: 0  # The number of GPU which be used in training. -1 means CPU. 0 means gpu0, 1 means gpu2...
+seed: 0  # The random seed.
 # Network
 graph:
   # True means centralized federated, nodes communicate with the server; False means decentralized, nodes communicate with other nodes.
@@ -105,7 +108,6 @@ controller:
 
 
 node:
-  track: False  # Whether track server metrics using the tracking service.
   batch_size: 32  # The batch size of training in client.
   test_batch_size: 5  # The batch size of testing in client.
   local_epoch: 1  # The number of epochs to train in each round.
@@ -188,17 +190,16 @@ attacks_param:
   #                                       int means use the little_scale.
   little_scale: None
 
-
-gpu: 0  # The number of GPU which be used in training. -1 means CPU. 0 means gpu0, 1 means gpu2...
-
-seed: 0  # The random seed.
-
-tracking:  # The configurations for logging and tracking.
-  database: ""  # The path of local dataset, sqlite3.
+tracking:  # The configurations for logging.
   log_file: ""
   log_level: "INFO"  # The level of logging.
   metric_file: ""
-  save_every: 1
+
+# wandb is a tool to watch the process, refer to https://zhuanlan.zhihu.com/p/266337608.
+wandb_param:
+  use_wandb: False
+  project_name: "" # The project name.
+  syn_to_web: True # Real-time synchronisation to the website
 
 rsa_param:
   lambda_rsa: 0.01 # The parameter of RSA TASK.

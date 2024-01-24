@@ -102,6 +102,7 @@ def run():
         "aggregation_param": {"exact_byz_cnt": True, "byz_cnt": 0, "weight_mh": True,
                               "threshold_selection": "parameter", "threshold": 0.1},
         "attacks_param": {"use_honest_mean": True, "sign_scale": -4, "little_scale": None},
+        "wandb_param": {"use_wandb": False, "project_name": "", "syn_to_web": True},
         "rsa_param": {"lambda_rsa": args.lambda_rsa, "paradigm_num": args.paradigm_num,
                       "weight_decay_rsa": args.weight_decay_rsa}
     }

@@ -1,16 +1,12 @@
 import argparse
-import logging
 import os
-
-from copy import copy
-from importlib import import_module
-
-import torch
+import wandb
 
 import src
 from src.coordinate import init_conf, init_logger
 from src.library.logger import create_logger
 from src.tracking import metric
+
 
 REQUIRED_PYTHON = "python3"
 
@@ -95,13 +91,15 @@ def run():
                        "test_every_iteration": args.test_every_iteration},
         "lr_controller_param": {"init_lr": args.init_lr, "init_momentum": args.init_momentum},
         "aggregation_param": {"exact_byz_cnt": True, "byz_cnt": 0, "weight_mh": True,
-                              "threshold_selection": "parameter", "threshold": 0.1},
-        "attacks_param": {"use_honest_mean": True, "sign_scale": -4, "little_scale": None}
+                              "threshold_selection": "true", "threshold": 0.01},
+        "attacks_param": {"use_honest_mean": True, "sign_scale": -4, "little_scale": None},
+        "wandb_param": {"use_wandb": False, "project_name": "", "syn_to_web": True}
     }
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     #  If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.
     os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb=256"
+
     src.init(config)
     src.run()
 

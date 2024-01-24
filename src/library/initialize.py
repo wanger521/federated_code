@@ -1,17 +1,19 @@
-from ByrdLab.library.RandomNumberGenerator import torch_rng
+from src.library.RandomNumberGenerator import torch_rng
 import torch
-from ByrdLab import FEATURE_TYPE
+from src.datas.make_data import FEATURE_TYPE
 
-class ZeroInitialize():
+
+class ZeroInitialize:
     def __call__(self, model, fix_init_model=False, seed=100):
         for param in model.parameters():
             param.data.zero_()
             param.data.add_(1)
-    
 
-class RandomInitialize():
+
+class RandomInitialize:
     def __init__(self, scale=6):
         self.scale = scale
+
     def __call__(self, model, fix_init_model=False, seed=100):
         rng = torch_rng(seed=seed) if fix_init_model else None
         for param in model.parameters():

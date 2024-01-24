@@ -100,13 +100,10 @@ class BaseNode(object):
         """
         self.conf = conf
         self.init_best_model(model)
-        # if conf.node.track:
-        #     self._tracker.set_node_context(conf.node.task_id, conf.node.round_id, self.cid)
 
         self._is_train = True
 
         self.download(model)
-        # self.track(metric.TRAIN_DOWNLOAD_SIZE, model_size(model))
 
         self.decompression()
 
@@ -464,7 +461,6 @@ class BaseNode(object):
         """Preprocessing before testing."""
         pass
 
-    @torch.no_grad()
     def test(self, conf, device=metric.CPU, another_model=None):
         """Execute node testing.
 
@@ -490,8 +486,7 @@ class BaseNode(object):
             batched_x, batched_y = next(self.test_loader)
             if str(batched_y.dtype) == "torch.int32" or str(batched_y.dtype) == "torch.int16":
                 batched_y = batched_y.type(torch.LongTensor)
-            x = batched_x.to(device)
-            y = batched_y.to(device)
+            x, y = batched_x.to(device), batched_y.to(device)
             log_probs = model(x)
 
             loss = loss_fn(log_probs, y)

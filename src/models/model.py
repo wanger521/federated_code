@@ -1,5 +1,4 @@
 import importlib
-import logging
 from os import path
 
 from torch import nn

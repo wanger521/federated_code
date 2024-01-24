@@ -1,19 +1,15 @@
 import copy
 import os
-import threading
 import time
+import wandb
 
 import numpy as np
 import torch
-import torch.distributed as dist
-from omegaconf import OmegaConf
 from torch.nn.utils import parameters_to_vector
 
 from src.library.cache_io import dump_file_in_cache, dump_file_in_root, file_exist, dump_model_in_root
 from src.tracking import metric
-# from src.tracking.node import init_tracking
 from src.library.float import rounding
-# from src.library.distributed import gather_value
 from src.library.logger import create_logger
 
 logger = create_logger()
@@ -87,7 +83,7 @@ class BaseController(object):
         self._test_node_num = []
         self._cumulative_test_round = []  # record the corresponding test round
 
-        self._condition = threading.Condition()
+        self.wandb_message = {}
 
     def start(self, model, nodes, graph_, agg_class, attack_class):
         """Start federated learning process, including training and testing.
@@ -140,9 +136,6 @@ class BaseController(object):
 
             # Save Model
             self.save_model()
-
-            # self.track(metric.ROUND_TIME, time.time() - self._round_time)
-            # self.save_tracker()
 
         logger.info("Consensus errors: {}".format(rounding(self._test_consensus_errors, 8)))
         logger.info("Accuracies: {}".format(rounding(self._test_accuracies["avg"], 4)))
@@ -410,7 +403,7 @@ class BaseController(object):
         self.set_node_uploads_test(uploaded_accuracies, uploaded_losses, uploaded_consensus_error,
                                    uploaded_data_sizes)
         self.set_node_avg_model_uploads_test(uploaded_avg_model_accuracies, uploaded_avg_model_losses)
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
 
     @torch.no_grad()
     def get_controller_avg_model(self):
@@ -467,7 +460,7 @@ class BaseController(object):
             model_param = parameters_to_vector([param.data for param in model.parameters()])
             messages.append(model_param)
         messages = torch.stack(messages, dim=0)
-        return torch.var(messages[test_nodes_cid],
+        return torch.var(messages,
                          dim=0, unbiased=False).norm().item()
 
     def get_test_nodes(self):
@@ -836,10 +829,10 @@ class BaseController(object):
                     self._train_regrets[node.cid].append(train_metric[node.cid][metric.TRAIN_STATIC_REGRET])
                     regrets += train_metric[node.cid][metric.TRAIN_STATIC_REGRET]
             else:
-                self._train_accuracies[node.cid].append(0)
-                self._train_losses[node.cid].append(0)
+                self._train_accuracies[node.cid].append([0])
+                self._train_losses[node.cid].append([0])
                 if self.conf.node.calculate_static_regret:
-                    self._train_regrets[node.cid].append(0)
+                    self._train_regrets[node.cid].append([0])
 
         self._train_node_num.append(train_node_num)
         self._train_accuracies["avg"].append(acc / train_node_num)
@@ -906,3 +899,23 @@ class BaseController(object):
                 self._test_consensus_errors[-1]))
             self.print_('AVG Model Test loss: {:.6f}, Test accuracy: {:.2f}%'.format(
                 self._test_avg_model_losses["avg"][-1], self._test_avg_model_accuracies["avg"][-1] * 100))
+        self.wandb_log()
+
+    def wandb_log(self):
+        """
+        If self.conf.wandb_param.use_wandb is True, we use this method to show train process.
+        """
+        if self.should_print() and self.conf.wandb_param.use_wandb:
+            if self._current_round != 0:
+                self.wandb_message["Train accuracy"] = self._train_accuracies["avg"][-1] * 100
+                self.wandb_message["Train loss"] = self._train_losses["avg"][-1]
+            self.wandb_message["Test accuracy"] = self._test_accuracies["avg"][-1] * 100
+            self.wandb_message["Test loss"] = self._test_losses["avg"][-1]
+            if self.conf.node.calculate_static_regret:
+                self.wandb_message["Train regret"] = self._train_regrets["avg"][-1]
+            if not self.controller_retain_one_model:
+                self.wandb_message["Consensus error"] = self._test_consensus_errors[-1]
+                self.wandb_message["AVG Model Test loss"] = self._test_avg_model_losses["avg"][-1]
+                self.wandb_message["AVG Model Test accuracy"] = self._test_avg_model_accuracies["avg"][-1] * 100
+            wandb.log(self.wandb_message)
+

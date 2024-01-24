@@ -94,7 +94,8 @@ def run():
         "lr_controller_param": {"init_lr": args.init_lr, "init_momentum": args.init_momentum},
         "aggregation_param": {"exact_byz_cnt": True, "byz_cnt": 0, "weight_mh": True,
                               "threshold_selection": "parameter", "threshold": 0.1},
-        "attacks_param": {"use_honest_mean": True, "sign_scale": -4, "little_scale": None}
+        "attacks_param": {"use_honest_mean": True, "sign_scale": -4, "little_scale": None},
+        "wandb_param": {"use_wandb": False, "project_name": "", "syn_to_web": True}
     }
 
     # We do not successfully achieve byrd_saga + momentum, so we force to set use_momentum = fasle.

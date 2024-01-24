@@ -1,4 +1,5 @@
 import logging
+import os
 from copy import copy
 from importlib import import_module
 
@@ -14,6 +15,8 @@ from src.library.graph import CompleteGraph, ErdosRenyi, TwoCastle, RingCastle, 
 from src.models import load_model
 from src.library.logger import create_logger
 from src.tracking import metric
+import wandb
+import random
 
 REQUIRED_PYTHON = "python3"
 
@@ -25,8 +28,8 @@ def main():
     # test_module()
     # test_coordinate()
     # test_graph()
-    test_online()
-
+    # test_online()
+    test_wandb()
 
 def test_conf():
     confs = init_conf()
@@ -200,6 +203,36 @@ def test_graph():
     graphs = graph_class(node_size=10, byzantine_size=1, castle_cnt=1, head_cnt=5,
                          head_byzantine_cnt=1, hand_byzantine_cnt=1, connected_p=0.7)
     graphs.show()
+
+
+def test_wandb():
+    # os.environ["WANDB_MODE"] = "offline"
+    # start a new wandb run to track this script
+    wandb.init(
+        # set the wandb project where this run will be logged
+        project="my-awesome-project",
+
+        # track hyperparameters and run metadata
+        config={
+            "learning_rate": 0.02,
+            "architecture": "CNN",
+            "dataset": "CIFAR-100",
+            "epochs": 10,
+        }
+    )
+
+    # simulate training
+    epochs = 10
+    offset = random.random() / 5
+    for epoch in range(2, epochs):
+        acc = 1 - 2 ** -epoch - random.random() / epoch - offset
+        loss = 2 ** -epoch + random.random() / epoch + offset
+
+        # log metrics to wandb
+        wandb.log({"acc": acc, "loss": loss})
+
+    # [optional] finish the wandb run, necessary in notebooks
+    wandb.finish()
 
 
 if __name__ == '__main__':

@@ -1,14 +1,11 @@
-import logging
 import os
 import random
-import sys
 import time
 from os import path
-
+import wandb
 import numpy as np
 import torch
 from omegaconf import OmegaConf
-import colorlog
 
 import torchvision.models as models
 from torchvision.models import ResNet18_Weights
@@ -68,10 +65,11 @@ class Coordinator(object):
 
         Args:
             conf (omegaconf.dictconfig.DictConfig): Internal configurations for federated learning.
-            init_all (bool): Whether initialize dataset, model, controller, and node other than configuration.
+            init_all (bool): Whether initialize dataset, model, controller, node, graph, aggregation and attack
+                            other than configuration.
         """
 
-        # if online best model exist, we do not need to train again; if not, we train.
+        # For the online task, if online best model exist, we do not need to train again; if not, we train.
         if conf.task_name == metric.ONLINE_BEST_MODEL:
             best_title = metric.ONLINE_BEST_MODEL + ".pth"
             best_path_list = [metric.SAVED_MODELS, conf.data.dataset, conf.model,
@@ -103,7 +101,6 @@ class Coordinator(object):
 
     def run(self):
         """Run the coordinator and the federated learning process.
-        Initialize `torch.distributed` if distributed training is configured.
         """
         start_time = time.time()
 
@@ -112,6 +109,10 @@ class Coordinator(object):
             logger.info("Total training time {:.1f}s".format(time.time() - start_time))
             print('-------------------------------------------')
             print("")
+
+        # [optional] finish the wandb run, necessary in notebooks
+        if self.conf is not None and self.conf.wandb_param.use_wandb:
+            wandb.finish()
 
     def init_conf(self, conf):
         """Initialize coordinator configuration.
@@ -132,6 +133,8 @@ class Coordinator(object):
             self.conf.node.momentum_controller = "ConstantLr"
             self.conf.lr_controller_param.init_momentum = 0
             self.conf.node.optimizer.use_another_momentum = False
+            logger.warning("Because you do not use momentum, so we set momentum param in SGD as 1,"
+                           " momentum controller as ConstantLr")
 
         logger.debug("Configurations: {}".format(self.conf))
         logger.debug("Device is {}{}.".format(self.conf.device, self.conf.gpu))
@@ -165,7 +168,17 @@ class Coordinator(object):
         if self._model_class:
             self.model = self._model_class(feature_dimension=self.extra_info["feature_dimension"],
                                            num_classes=self.extra_info["num_classes"])
+        self.adjust_model()
 
+        # adapt model weight type with feature type
+        self.model = adapt_model_type(self.model)
+
+        logger.info("Model {} is inited.".format(self.conf.model))
+
+    def adjust_model(self):
+        """
+        For the resnet18, we want to use the pretrained model, so we adjust model here.
+        """
         # load pretrained model, only suit for model resnet18 and dataset Cifar10/Cifar100.
         if self.conf.model_pretrained and (self.conf.data.dataset == "Cifar10" or self.conf.data.dataset == "Cifar100") \
                 and self.conf.model == "resnet18":
@@ -182,27 +195,12 @@ class Coordinator(object):
 
             self.model = pretrained_resnet18
 
-        # adapt model weight type with feature type
-        self.model = adapt_model_type(self.model)
-
-        logger.info("Model {} is inited.".format(self.conf.model))
-
     def init_controller(self):
         """Initialize a controller instance."""
         if not self.registered_controller:
             self._controller_class = BaseController
-
-        # kwargs = {
-        #     "is_remote": self.conf.is_remote,
-        #     "local_port": self.conf.local_port
-        # }
         kwargs = {
         }
-
-        # if self.conf.test_mode == TEST_IN_SERVER:
-        #     kwargs["test_data"] = self.test_data
-        #     if self.val_data:
-        #         kwargs["val_data"] = self.val_data
 
         self.controller = self._controller_class(self.conf, **kwargs)
 
@@ -211,19 +209,10 @@ class Coordinator(object):
         if not self.registered_node:
             self._node_class = BaseNode
 
-        # Enforce system heterogeneity of nodes.
+        # Enforce system heterogeneity of nodes
         sleep_time = [0 for _ in range(self.conf.graph.nodes_cnt)]
-        # if self.conf.resource_heterogeneous.simulate:
-        #     sleep_time = resource_hetero_simulation(self.conf.resource_heterogeneous.fraction,
-        #                                             self.conf.resource_heterogeneous.hetero_type,
-        #                                             self.conf.resource_heterogeneous.sleep_group_num,
-        #                                             self.conf.resource_heterogeneous.level,
-        #                                             self.conf.resource_heterogeneous.total_time,
-        #                                             len(self.train_data.users))
 
         node_test_data = self.test_data_iter
-        # if self.conf.test_mode == TEST_IN_SERVER:
-        #     node_test_data = None
         users = list(range(self.conf.graph.nodes_cnt))
         self.nodes = [self._node_class(u, self.conf,
                                        self.train_data_iter[u],
@@ -245,9 +234,9 @@ class Coordinator(object):
 
         # Get a random node if not specified
         if self.conf.index:
-            user = self.train_data.users[self.conf.index]
+            user = list(range(self.conf.graph.nodes_cnt))[self.conf.index]
         else:
-            user = random.choice(self.train_data.users)
+            user = random.choice(list(range(self.conf.graph.nodes_cnt)))
 
         return self._node_class(user,
                                 self.conf,
@@ -256,6 +245,9 @@ class Coordinator(object):
                                 self.conf.device)
 
     def init_graph(self):
+        """
+        Initialize the graph.
+        """
         if not self.registered_graph:
             graph_class = getattr(graph, self.conf.graph.graph_type) if not self.conf.graph.centralized \
                 else getattr(graph, "CompleteGraph")
@@ -295,6 +287,9 @@ class Coordinator(object):
                            self.graph_.honest_size, self.graph_.byzantine_size))
 
     def init_aggregation(self):
+        """
+        Initialized the aggregation rule.
+        """
         if self.registered_aggregation:
             agg_class = self._agg_class
         else:
@@ -312,6 +307,9 @@ class Coordinator(object):
         logger.info("The aggregation rule is {}.".format(self.conf.controller.aggregation_rule))
 
     def init_attack(self):
+        """
+        Initialized the attack.
+        """
         if self.registered_attack:
             attack_class = self._attack_class
         else:
@@ -325,44 +323,6 @@ class Coordinator(object):
                                     little_scale=self.conf.attacks_param.little_scale)
         self.attack_instance = attack_class
         logger.info("The byzantine attack type is {}.".format(self.conf.controller.attack_type))
-
-    def start_controller(self, args):
-        """Start a controller service for remote training.
-
-        Controller controls the model and testing dataset if configured to test in controller.
-
-        Args:
-            args (argparse.Namespace): Configurations passed in as arguments, it is merged with configurations.
-        """
-        if args:
-            self.conf = OmegaConf.merge(self.conf, args.__dict__)
-
-        # if self.conf.test_mode == TEST_IN_SERVER:
-        #     self.init_dataset()
-
-        self.init_model()
-
-        self.init_controller()
-
-        # self.controller.start_service()
-
-    def start_node(self, args):
-        """Start a node service for remote training.
-
-        Node controls training datasets.
-
-        Args:
-            args (argparse.Namespace): Configurations passed in as arguments, it is merged with configurations.
-        """
-
-        if args:
-            self.conf = OmegaConf.merge(self.conf, args.__dict__)
-
-        self.init_dataset()
-
-        node = self.init_node()
-
-        # node.start_service()
 
     def register_dataset(self, train_data, test_data, val_data=None):
         """Register datasets.
@@ -409,7 +369,7 @@ class Coordinator(object):
         """
         self.registered_node = True
         self._node_class = node
-        
+
     def register_graph(self, graph):
         """Register a customized graph.
 
@@ -486,8 +446,36 @@ def init_logger(log_level):
 
     Args:
         log_level (int): Logger level, e.g., logging.INFO, logging.DEBUG
+
     """
-    create_logger(log_level=log_level)
+    # TODO: the parameter in config only can control the log level in this python file,
+    #  the other logger in other python files is default as logger.INFO
+    global logger
+    logger = create_logger(log_level=log_level)
+
+
+def init_wandb(conf, config):
+    """
+    If you want to use wandb show your train process, set config.wandb_param.use_wandb be True.
+    And you need do some pre-work as follows.
+    1. Set up the wandb library:
+            pip install wandb
+    2. sign in: https://wandb.ai/site
+    3. use your key to login in terminal:
+            wandb login
+    4. in main.py set config.wandb_param.use_wandb be True.
+    """
+    if config.wandb_param.use_wandb:
+        if config.wandb_param.syn_to_web is False:
+            os.environ["WANDB_MODE"] = "dryrun"
+        is_centralized = "centralized" if config.graph.centralized else "decentralized"
+        project_name = config.wandb_param.project_name if config.wandb_param.project_name != "" \
+            else "my_{}_{}_{}_{}".format(config.task_name, config.data.dataset, config.model, is_centralized)
+
+        wandb.init(project=project_name,
+                   config=conf,
+                   name="{}_{}_{}".format(config.controller.aggregation_rule, conf["controller"]["attack_type"],
+                                          config.graph.graph_type[:4]))
 
 
 def init(conf=None, init_all=True):
@@ -502,6 +490,8 @@ def init(conf=None, init_all=True):
     config = init_conf(conf)
 
     init_logger(config.tracking.log_level)
+
+    init_wandb(conf, config)
 
     _set_random_seed(config.seed)
 

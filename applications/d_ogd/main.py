@@ -1,6 +1,9 @@
 import argparse
 import copy
-import sys, os
+import os
+import sys
+
+import wandb
 
 sys.path.append(os.path.split(os.path.split(sys.path[0])[0])[0])
 
@@ -92,7 +95,8 @@ def run():
         "lr_controller_param": {"init_lr": args.init_lr, "init_momentum": args.init_momentum},
         "aggregation_param": {"exact_byz_cnt": True, "byz_cnt": 0, "weight_mh": True,
                               "threshold_selection": "parameter", "threshold": 0.1},
-        "attacks_param": {"use_honest_mean": True, "sign_scale": -4, "little_scale": None}
+        "attacks_param": {"use_honest_mean": True, "sign_scale": -4, "little_scale": None},
+        "wandb_param": {"use_wandb": True, "project_name": "", "syn_to_web": True}
     }
 
     if "node" in config:
@@ -122,16 +126,23 @@ def run():
     config_online["controller"]["save_model_every_epoch"] = config_online["controller"]["rounds"]
     config_online["controller"]["save_model_every_iteration"] = config_online["controller"]["rounds_iterations"]
     config_online["graph"] = {"centralized": True, "nodes_cnt": 1, "byzantine_cnt": 0}
+    config_online["wandb_param"]["use_wandb"] = False
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     #  If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.
     os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb=256"
+
+    # wandb.init(project="my-online-mnist-project",
+    #            config=config)
 
     src.init(config_online)
     src.run()
 
     src.init(config)
     src.run()
+
+    # # [optional] finish the wandb run, necessary in notebooks
+    # wandb.finish()
 
 
 if __name__ == '__main__':
