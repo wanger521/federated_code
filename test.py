@@ -31,6 +31,7 @@ def main():
     # test_online()
     test_wandb()
 
+
 def test_conf():
     confs = init_conf()
     init_logger(logging.INFO)
@@ -235,6 +236,31 @@ def test_wandb():
     wandb.finish()
 
 
+# -*- coding: utf-8 -*-
+
+def generate_directory_md(root_dir, indent=0, exclude_dirs=None):
+    if exclude_dirs is None:
+        exclude_dirs = []
+
+    entries = os.listdir(root_dir)
+    entries = [entry for entry in entries if entry not in exclude_dirs and not entry.startswith('.')]
+    entries.sort()
+
+    for entry in entries:
+        full_path = os.path.join(root_dir, entry)
+        if os.path.isdir(full_path):
+            print("  " * indent + f"- **{entry}/**")
+            generate_directory_md(full_path, indent + 1, exclude_dirs)
+        else:
+            print("  " * indent + f"- {entry}")
+
+
 if __name__ == '__main__':
     # test_conf()
     main()
+    # excluded_dirs = ["saved_models", "docs", "doc", "record",
+    #                  "data", "logs", "wandb", "pictures", "reports",
+    #                  "references", "notebooks"]
+    #
+    # print("# Directory Structure\n")
+    # generate_directory_md(".", indent=0, exclude_dirs=excluded_dirs)

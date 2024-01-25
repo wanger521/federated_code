@@ -127,6 +127,10 @@ def run():
     config_online["controller"]["save_model_every_iteration"] = config_online["controller"]["rounds_iterations"]
     config_online["graph"] = {"centralized": True, "nodes_cnt": 1, "byzantine_cnt": 0}
     config_online["wandb_param"]["use_wandb"] = False
+    config_online["node"]["optimizer"]["use_momentum"] = True
+    if args.dataset == "Mnist":
+        config_online["lr_controller_param"]["init_lr"] = 0.1
+        config_online["node"]["lr_controller"] = "ConstantLr"
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     #  If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.

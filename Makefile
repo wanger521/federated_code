@@ -38,6 +38,12 @@ clean:
 lint:
 	flake8 src
 
+## make tree
+docs1:
+	tree --dirsfirst > project_structure.md
+## find . -type d -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'
+
+
 ## Upload Data to S3
 sync_data_to_s3:
 ifeq (default,$(PROFILE))

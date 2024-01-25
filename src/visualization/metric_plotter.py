@@ -328,7 +328,7 @@ def draw_dongMnist():
             "init_lr": 0.1,
             "momentum_controller": "FollowOne",
             "init_momentum": 0.1,
-            "partition_type": "noniid_dir",  # "iid"
+            "partition_type": "iid",  # "noniid_dir"
             "task_name": "",
             "use_momentum": True
             }
@@ -354,8 +354,48 @@ def draw_dongMnist():
                    draw_x=200)
 
 
+def draw_rsaMnist():
+    data_root = "../../applications/rsa/"
+    metric_names = [metric.TEST_ACCURACY, metric.TEST_LOSS]
+    # metric_names = [metric.TEST_LOSS, metric.TRAIN_LOSS]
+    dataset = "Mnist"
+    model = "softmax_regression"
+    conf = {"graph_type": "CompleteGraph",
+            "centralized": "decentralized",  # "centralized"
+            "nodes_cnt": 10,
+            "byzantine_cnt": 2,
+            "epoch_or_iteration": "iteration",
+            "rounds": 10,
+            "rounds_iterations": 4000,
+            "lr_controller": "DecreasingStepLr",
+            "init_lr": 0.1,
+            "momentum_controller": "FollowOne",
+            "init_momentum": 0.1,
+            "partition_type": "iid",  # "noniid_dir"
+            "task_name": "RSA",
+            "use_momentum": False
+            }
+
+    if conf["use_momentum"] is False:
+        conf["momentum_controller"] = "ConstantLr"
+        conf["init_momentum"] = 0
+
+    extra = dict()
+    extra["aggregation_rules"] = ["Mean"]
+    extra["aggregation_show_name"] = ["rsa"]
+    # extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"]
+    # extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
+    #                              "sample-duplicating attack"]
+    extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating", "LittleEnough"]
+    extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
+                                 "sample-duplicating attack", "little enough"]
+
+    metric_plotter(metric_names=metric_names, dataset=dataset, model=model, conf=conf, extra=extra, data_root=data_root,
+                   draw_x=200)
+
 if __name__ == '__main__':
     # main()
     # draw_yeCifar10()
     # draw_dongCifar10()
-    draw_dongMnist()
+    # draw_dongMnist()
+    draw_rsaMnist()
