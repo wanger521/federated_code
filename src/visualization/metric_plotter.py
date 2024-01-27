@@ -287,7 +287,7 @@ def draw_dongCifar10():
             "init_lr": 0.025,
             "momentum_controller": "FollowOne",
             "init_momentum": 0.1,
-            "partition_type": "noniid_class",  # "iid"
+            "partition_type": "noniid_dir",  # "iid"
             "task_name": "",
             "use_momentum": True
             }
@@ -436,7 +436,7 @@ def draw_rsaMnist():
 if __name__ == '__main__':
     # main()
     # draw_yeCifar10()
-    # draw_dongCifar10()
+    draw_dongCifar10()
     # draw_dongMnist()
     # draw_rsaMnist()
-    draw_dongMnistSoft()
+    # draw_dongMnistSoft()

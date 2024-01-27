@@ -521,7 +521,7 @@ class BaseController(object):
                 messages.append(gradient_param)
         messages = torch.stack(messages, dim=0)
         self.messages = messages
-        new_messages = copy.deepcopy(messages)
+        new_messages = [None for _ in range(self.graph_.node_size)]#copy.deepcopy(messages)
 
         # attack and aggregate
         for node in selected_nodes_cid:
@@ -548,8 +548,9 @@ class BaseController(object):
                 else:
                     node_cid = 0
                     flag = 1
+            new_message = new_messages[node_cid] if new_messages[node_cid] is not None else self.messages[node_cid]
             self.one_step_gradient_descent_update_or_parameter_update(
-                models[node_cid], new_messages[node_cid],
+                models[node_cid], new_message,
                 uploaded_content[metric.NODE_METRICS][node_cid][metric.LEARNING_RATE])
         self.set_model(models, load_dict=True)
 
