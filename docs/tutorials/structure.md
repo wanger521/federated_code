@@ -1,0 +1,102 @@
+# Directory Structure
+
+- LICENSE
+- Makefile
+- README.md
+- **applications/**
+  - **byrd_saga/**
+    - byrd_saga_node.py
+    - main.py
+  - **d_ogd/**
+    - main.py
+  - **rsa/**
+    - config.yaml
+    - main.py
+    - rsa_controller.py
+    - rsa_node.py
+- data.meta
+- main.py
+- requirements.txt
+- setup.py
+- **src/**
+  - __init__.py
+  - **aggregations/**
+    - __init__.py
+    - aggregations.py
+    - base_aggregation.py
+  - **attacks/**
+    - __init__.py
+    - attacks.py
+    - base_attack.py
+  - **compression/**
+  - config.yaml
+  - config_operate.py
+  - coordinate.py
+  - **datas/**
+    - __init__.py
+    - federated_dataset.py
+    - **make_data/**
+      - __init__.py
+      - make_cifar10.py
+      - make_cifar100.py
+      - make_dataset.py
+      - make_mnist.py
+      - make_synthetic.py
+      - trans_torch.py
+    - **partition/**
+      - partition_classification.py
+      - partition_continuous.py
+      - partition_unit.py
+  - **features/**
+    - __init__.py
+    - build_features.py
+  - **library/**
+    - RandomNumberGenerator.py
+    - __init__.py
+    - cache_io.py
+    - custom_exceptions.py
+    - float.py
+    - graph.py
+    - initialize.py
+    - learning_rate_controller.py
+    - logger.py
+    - sample.py
+    - tool.py
+  - **models/**
+    - __init__.py
+    - lenet.py
+    - linear_regression.py
+    - logistic_regression.py
+    - model.py
+    - resnet.py
+    - resnet18.py
+    - resnet50.py
+    - rnn.py
+    - simple_cnn.py
+    - softmax_regression.py
+    - vgg9.py
+  - **optimizations/**
+    - __init__.py
+    - adam_get_grad.py
+    - sgd_get_grad.py
+  - **tracking/**
+    - __init__.py
+    - evaluation.py
+    - metric.py
+    - node.py
+    - node_test.py
+    - service.py
+    - storage.py
+  - **train/**
+    - __init__.py
+    - **controller/**
+      - __init__.py
+      - base_controller.py
+    - **nodes/**
+      - __init__.py
+      - base_node.py
+  - **visualization/**
+    - __init__.py
+    - metric_plotter.py
+- test.py
+- tox.ini
