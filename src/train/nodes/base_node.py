@@ -111,9 +111,6 @@ class BaseNode(object):
         self.train(conf, self.device)
         self.post_train()
 
-        if conf.node.local_test:
-            self.test_local()
-
         self.compression()
 
         return self.upload()
@@ -452,10 +449,6 @@ class BaseNode(object):
             partial: Data partial loader.
         """
         return self.train_data
-
-    def test_local(self):
-        """Test node local model after training."""
-        pass
 
     def pre_test(self):
         """Preprocessing before testing."""

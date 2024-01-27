@@ -353,6 +353,46 @@ def draw_dongMnist():
     metric_plotter(metric_names=metric_names, dataset=dataset, model=model, conf=conf, extra=extra, data_root=data_root,
                    draw_x=200)
 
+def draw_dongMnistSoft():
+    data_root = "../../applications/d_ogd/"
+    metric_names = [metric.TEST_ACCURACY, metric.TRAIN_STATIC_REGRET]
+    # metric_names = [metric.TEST_LOSS, metric.TRAIN_LOSS]
+    dataset = "Mnist"
+    model = "softmax_regression"
+    conf = {"graph_type": "ErdosRenyi",
+            "centralized": "decentralized",  # "centralized"
+            "nodes_cnt": 30,
+            "byzantine_cnt": 5,
+            "epoch_or_iteration": "iteration",
+            "rounds": 10,
+            "rounds_iterations": 5000,
+            "lr_controller": "DecreasingStepLr", # ConstantLr ConstantThenDecreasingLr
+            "init_lr": 0.01, # 0.1
+            "momentum_controller": "FollowOne",
+            "init_momentum": 0.1,
+            "partition_type": "iid",  # "noniid_dir"
+            "task_name": "",
+            "use_momentum": True # False
+            }
+
+    if conf["use_momentum"] is False:
+        conf["momentum_controller"] = "ConstantLr"
+        conf["init_momentum"] = 0
+
+    extra = dict()
+    extra["aggregation_rules"] = ["Mean", "Faba", "CenteredClipping", "Median", "Phocas", "GeometricMedian",
+                                  "Krum", "TrimmedMean", "Bulyan"]
+    extra["aggregation_show_name"] = ["mean", "FABA", "centered clipping", "Median", "Phocas", "geometric median",
+                                      "Krum", "trimmed mean", "Bulyan"]
+    extra["attack_types"] = ["NoAttack"]
+    extra["attack_show_name"] = ["without attack"]
+    # extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating", "LittleEnough"]
+    # extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
+    #                              "sample-duplicating attack", "little enough"]
+    extra["y_lim"] = [[0, 3], [0, 10000]]
+
+    metric_plotter(metric_names=metric_names, dataset=dataset, model=model, conf=conf, extra=extra, data_root=data_root,
+                   draw_x=200)
 
 def draw_rsaMnist():
     data_root = "../../applications/rsa/"
@@ -398,4 +438,5 @@ if __name__ == '__main__':
     # draw_yeCifar10()
     # draw_dongCifar10()
     # draw_dongMnist()
-    draw_rsaMnist()
+    # draw_rsaMnist()
+    draw_dongMnistSoft()

@@ -8,7 +8,7 @@
 
 *<small>This project is a Byzantine-robust federated learning framework, including both centralized and decentralized training architectures.<small>*
 
----
+--- 
 
 ## Introduction
 
@@ -23,7 +23,7 @@ You can use it for:
 
 **Easy to Start**
 
-RobustFL is easy to install and easy to learn, just the same as EasyFL. It does not have complex dependency requirements. You can run EasyFL on your personal computer with only three lines of code ([Quick Start](docs/en/quick_run.md)).
+RobustFL is easy to install and easy to learn, just the same as EasyFL. It does not have complex dependency requirements. You can run EasyFL on your personal computer with only three lines of code ([Quick Start](docs/tutorials/quick_run.md)).
 
 **Out-of-the-box Functionalities**
 
@@ -39,18 +39,33 @@ RobustFL only supports **standalone training**. We use a single card for pseudo-
 
 ## Getting Started
 
-You can refer to [Get Started](docs/en/get_started.md) for installation and [Quick Run](docs/en/quick_run.md) for the simplest way of using RobustFL.
+You can refer to [Get Started](docs/tutorials/get_started.md) for installation and [Quick Run](docs/tutorials/quick_run.md) for the simplest way of using RobustFL.
 
 For more advanced usage, we provide a list of tutorials on:
-* [High-level APIs](docs/en/tutorials/high-level_apis.md)
-* [Configurations](docs/en/tutorials/config.md)
-* [Datasets](docs/en/tutorials/dataset.md)
-* [Models](docs/en/tutorials/model.md)
-* [Customize Controller and Node](docs/en/tutorials/customize_controller_and_node.md)
-* [Aggregations](docs/en/tutorials/aggregations.md)
-* [Byzantine-attacks](docs/en/tutorials/byzantine-attacks.md)
-* [Others](docs/en/tutorials/other-tools.md)
-* [Code-Structure](docs/en/tutorials/structure.md)
+* [1. High-level APIs](docs/tutorials/1.high-level_apis.md)
+* [2. Configurations](docs/tutorials/2.config.md)
+* [3. Datasets](docs/tutorials/3.dataset.md)
+* [4. Models](docs/tutorials/4.model.md)
+* [5. Customize Controller and Node](docs/tutorials/5.customize_controller_and_node.md)
+* [6. Aggregations](docs/tutorials/6.aggregations.md)
+* [7. Byzantine-attacks](docs/tutorials/7.byzantine-attacks.md)
+* [8. Graph](docs/tutorials/8.graph.md)
+* [9. Others](docs/tutorials/9.other-tools.md)
+* [10. Visualization](docs/tutorials/10.visualization.md)
+* [Code-Structure](docs/tutorials/structure.md)
+
+## Supported Functions:
+- **dataset**: `Mnist`, `Cifar10`, `Cifar100`, `Synthetic`
+- **partition_type**: `iid`, `successive`, `empty`, `share`, `noniid_class`, `noniid_class_unbalance`, `noniid_dir`
+- **model**: `rnn`, `resnet`, `resnet18`, `resnet50`, `vgg9`, `simple_cnn`, `softmax_regression`, `linear_regression`, `logistic_regression`
+- **aggregation_rule**: `Mean`, `MeanWeightMH`, `NoCommunication`, `Median`, `GeometricMedian`, `Krum`, `MKrum`, `TrimmedMean`, `RemoveOutliers`, `Faba`, `Phocas`, `IOS`, `Brute`, `Bulyan`, `CenteredClipping`
+- **attack_type**: `NoAttack`, `Gaussian`, `SignFlipping`, `SampleDuplicating`, `ZeroValue`, `Isolation`, `LittleEnough`
+- **epoch_or_iteration**: `epoch`, `iteration`
+- **optimizer_type**: `SGD`, `Admm`
+- **graph_type**: `CompleteGraph`, `ErdosRenyi`, `TwoCastle`, `RingCastle`, `OctopusGraph`
+- **centralized_or_decentralized**: `centralized`, `decentralized`
+- **lr_controller(learning rate)**: `ConstantLr`, `OneOverSqrtKLr`, `OneOverKLr`, `LadderLr`, `ConstantThenDecreasingLr`, `DecreasingStepLr`, `FollowOne`.
+- **applications**: `byrd_saga`, `d_ogd`, `rsa`, 
 
 
 ## Projects & Papers
@@ -64,11 +79,9 @@ We have released the source code for the following papers under the `application
 
 ## License
 
-This project is released under the [MIT License](LICENSE).
+This project is released under the [Apache 2.0 license](LICENSE).
 
-## Citation
-
-If you use this platform or related projects in your research, please cite this project.
+Based on the Apache 2.0 license, we hereby declare the reuse and modification of <a target="──blank" href="https://easyfl.readthedocs.io/en/latest/introduction.html"> EasyFL: an easy-to-use federated learning platform </a>. We mainly revised parts of their federated framework, including model, server, client, tracking, coordinator, config and tutorials. We extend their federated framework to the Byzantine-robust federated framework; and add another decentralized framework and some data-processed code. 
 
 
 ## Main Contributors
@@ -117,19 +130,19 @@ Project Organization
     │   ├── attacks            <- Scripts to attack messages for the byzantine nodes in the graph.
     │   │
     │   │
-    │   ├── compressions       <- Scripts to compression model for comunication.
+    │   ├── compressions       <- Scripts to compression model for communication.
     │   │
     │   │
     │   ├── datas              <- Scripts to download or generate data
     │   │   └── federated_dataset.py
     │   │
-    │   ├── library            <- Scripts to some useful functions, like graph.
+    │   ├── library            <- Scripts to some useful functions, like the graph.
     │   │
     │   │
     │   ├── models             <- Scripts to the model you trained.
     │   │
     │   │
-    │   ├── optimizations      <- Scripts to the overwrite optimization, likes SGD.
+    │   ├── optimizations      <- Scripts to the overwrite optimization, like SGD.
     │   │
     │   │
     │   ├── tracking           <- Scripts to some common constant variables.
@@ -148,7 +161,7 @@ Project Organization
     │   ├── config_operate.py  <- Merge the config.yaml and input dictionary config.
     │   │
     │   │
-    │   └── coordinate.py      <- The most important file includes the logic of how to starte and form a training session.
+    │   └── coordinate.py      <- The most important file includes the logic of how to start and form a training session.
     │   
     │
     ├── applications      <- The applications of this code.

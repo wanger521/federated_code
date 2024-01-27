@@ -37,6 +37,7 @@ class Coordinator(object):
         self.extra_info = None
         self.test_data_iter = None
         self.train_data_iter = None
+        self.val_data_iter = None
         self.registered_model = False
         self.registered_dataset = False
         self.registered_controller = False
@@ -324,20 +325,21 @@ class Coordinator(object):
         self.attack_instance = attack_class
         logger.info("The byzantine attack type is {}.".format(self.conf.controller.attack_type))
 
-    def register_dataset(self, train_data, test_data, val_data=None):
+    def register_dataset(self, train_data_iter, test_data_iter, val_data_iter=None):
         """Register datasets.
 
-        Datasets should inherit from :obj:`FederatedDataset`, e.g., :obj:`FederatedTensorDataset`.
+        Datasets should inherit from :obj:`StackedTorchDataPackage`,
+        and the train_data_iter should refer to federated_dataset.py.
 
         Args:
-            train_data (:obj:`FederatedDataset`): Training dataset.
-            test_data (:obj:`FederatedDataset`): Testing dataset.
-            val_data (:obj:`FederatedDataset`): Validation dataset.
+            train_data_iter (:obj:`DataGenerator`): Training dataset loader.
+            test_data_iter (:obj:`DataGenerator`): Testing dataset loader.
+            val_data_iter (:obj:`DataGenerator`): Validation dataset loader.
         """
         self.registered_dataset = True
-        self.train_data = train_data
-        self.test_data = test_data
-        self.val_data = val_data
+        self.train_data_iter = train_data_iter
+        self.test_data_iter = test_data_iter
+        self.val_data_iter = val_data_iter
 
     def register_model(self, model):
         """Register customized model for federated learning.
@@ -531,16 +533,19 @@ def get_coordinator():
     return _global_coord
 
 
-def register_dataset(train_data, test_data, val_data=None):
+def register_dataset(train_data_iter, test_data_iter, val_data_iter=None):
     """Register datasets for federated learning training.
 
-    Args:
-        train_data (:obj:`FederatedDataset`): Training dataset.
-        test_data (:obj:`FederatedDataset`): Testing dataset.
-        val_data (:obj:`FederatedDataset`): Validation dataset.
+        Datasets should inherit from :obj:`StackedTorchDataPackage`,
+        and the train_data_iter should refer to federated_dataset.py.
+
+        Args:
+            train_data_iter (:obj:`DataGenerator`): Training dataset loader.
+            test_data_iter (:obj:`DataGenerator`): Testing dataset loader.
+            val_data_iter (:obj:`DataGenerator`): Validation dataset loader.
     """
     global _global_coord
-    _global_coord.register_dataset(train_data, test_data, val_data)
+    _global_coord.register_dataset(train_data_iter, test_data_iter, val_data_iter)
 
 
 def register_model(model):

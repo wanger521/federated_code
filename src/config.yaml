@@ -8,7 +8,7 @@ seed: 0  # The random seed.
 
 # Network
 graph:
-  # True means centralized federated, nodes communicate with the server; False means decentralized, nodes communicate with other nodes.
+  # True means centralized federated, nodes communicate with the controller; False means decentralized, nodes communicate with other nodes.
   centralized: True
   # graph type, including CompleteGraph, ErdosRenyi, TwoCastle, RingCastle, OctopusGraph. If graph is centralized, we use CompleteGraph for default.
   graph_type: "CompleteGraph"
@@ -83,14 +83,13 @@ controller:
   save_model_every_epoch: 10  # The frequency of saving model for node.epoch_or_iteration==epoch: save model every N round.
   save_model_every_iteration: 5000. # The frequency of saving model for node.epoch_or_iteration==iteration. We recommend this same like rounds_iterations. Else same like rounds.
   save_model_path: ""  # The path to save model. Default path is root directory of the library.
-  batch_size: 32  # The batch size of test_in_server.
   test_all: False  # Whether test all nodes or only selected nodes.
   test_byzantine: False # Whether test byzantine nodes or only honest selected nodes.
-  random_selection: True  # Whether select clients to train randomly.
+  random_selection: True  # Whether select nodes to train randomly.
   # The rule to aggregate node uploaded models, options: "Mean",  "MeanWeightMH", "NoCommunication", "Median",
          #"GeometricMedian", "Krum", "MKrum", "TrimmedMean", "RemoveOutliers", "Faba", "Phocas", "IOS", "Brute", "Bulyan",
         # "CenteredClipping"
-    # FedAvg aggregates models using weighted average, where the weights are data size of clients.
+    # FedAvg aggregates models using weighted average, where the weights are data size of nodes.
     # equal aggregates model by simple averaging.
   aggregation_rule: "Mean"
   # The content of aggregation, options: all, parameters.
@@ -109,8 +108,7 @@ controller:
 
 
 node:
-  batch_size: 32  # The batch size of training in client.
-  test_batch_size: 5  # The batch size of testing in client.
+  batch_size: 32  # The batch size of training in node.
   local_epoch: 1  # The number of epochs to train in each round.
   local_iteration: 1 # The number of iterations to train in each round
   # "iteration" or "epoch"
@@ -124,7 +122,6 @@ node:
     # Else, False means the original momentum update way in SGD, m_t = v_t * m_{t-1} + g_t.
     use_another_momentum: False
     weight_decay: 0
-  local_test: False  # Whether test the trained models in clients before uploading them to the server.
   # The message the node choose to sent and aggregate. Including "model", "gradient"
   message_type_of_node_sent: "model"
   # The learning rate or momentum controller class name, include "ConstantLr", "OneOverSqrtKLr", "OneOverKLr", "LadderLr",
