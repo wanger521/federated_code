@@ -297,12 +297,14 @@ def draw_dongCifar10():
         conf["init_momentum"] = 0
 
     extra = dict()
-    extra["aggregation_rules"] = ["Mean", "Faba", "CenteredClipping", "Median", "Phocas", "GeometricMedian"]
-    extra["aggregation_show_name"] = ["mean", "FABA", "centered clipping", "Median", "Phocas", "geometric median"]
+    extra["aggregation_rules"] = ["Mean", "Faba", "CenteredClipping", "Median", "Phocas", "GeometricMedian",
+                                  'Krum', 'TrimmedMean']
+    extra["aggregation_show_name"] = ["mean", "FABA", "centered clipping", "Median", "Phocas", "geometric median",
+                                      'Krum', 'trimmed mean']
     # extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"]
     # extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
     #                              "sample-duplicating attack"]
-    extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"]
+    extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"] #"Gaussian",
     extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
                                  "sample-duplicating attack"]
     extra["y_lim"] = [[0, 3], [0, 10000]]

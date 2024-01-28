@@ -12,3 +12,4 @@ colorlog~=6.8.0
 networkx~=3.2
 scipy~=1.11.4
 wandb~=0.16.2
+geom_median~=0.1.0

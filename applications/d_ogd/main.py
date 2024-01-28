@@ -94,7 +94,7 @@ def run():
                        "test_every_iteration": args.test_every_iteration},
         "lr_controller_param": {"init_lr": args.init_lr, "init_momentum": args.init_momentum},
         "aggregation_param": {"exact_byz_cnt": True, "byz_cnt": 0, "weight_mh": True,
-                              "threshold_selection": "parameter", "threshold": 0.1},
+                              "threshold_selection": "true", "threshold": 0.1},
         "attacks_param": {"use_honest_mean": True, "sign_scale": -4, "little_scale": None},
         "wandb_param": {"use_wandb": True, "project_name": "", "syn_to_web": True}
     }
