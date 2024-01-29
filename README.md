@@ -65,7 +65,8 @@ For more advanced usage, we provide a list of tutorials on:
 - **graph_type**: `CompleteGraph`, `ErdosRenyi`, `TwoCastle`, `RingCastle`, `OctopusGraph`
 - **centralized_or_decentralized**: `centralized`, `decentralized`
 - **lr_controller(learning rate)**: `ConstantLr`, `OneOverSqrtKLr`, `OneOverKLr`, `LadderLr`, `ConstantThenDecreasingLr`, `DecreasingStepLr`, `FollowOne`.
-- **applications**: `byrd_saga`, `d_ogd`, `rsa`, 
+- **applications**: `byrd_saga`, `d_ogd`, `rsa`
+- **message_type_of_node_sent**: `gradient`, `model`
 
 
 ## Projects & Papers

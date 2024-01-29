@@ -287,7 +287,7 @@ def draw_dongCifar10():
             "init_lr": 0.025,
             "momentum_controller": "FollowOne",
             "init_momentum": 0.1,
-            "partition_type": "noniid_dir",  # "iid"
+            "partition_type": " noniid_dir",  # "iid" noniid_dir
             "task_name": "",
             "use_momentum": True
             }
@@ -304,7 +304,7 @@ def draw_dongCifar10():
     # extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"]
     # extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
     #                              "sample-duplicating attack"]
-    extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"] #"Gaussian",
+    extra["attack_types"] = ["NoAttack", "SignFlipping", "Gaussian", "SampleDuplicating"]
     extra["attack_show_name"] = ["without attack", "sign-flipping attack", "Gaussian attack",
                                  "sample-duplicating attack"]
     extra["y_lim"] = [[0, 3], [0, 10000]]
