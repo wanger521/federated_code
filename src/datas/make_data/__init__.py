@@ -4,13 +4,13 @@ __all__ = ['make_dataset', "trans_torch", "make_mnist", "make_cifar10", "make_ci
            "FEATURE_TYPE", "TARGET_TYPE", "TARGET_TYPE_SYN_CONS", "TARGET_TYPE_SYN_CLASS",
            "SYN_NUM_CLASSES", "SYN_DATA_DISTRIBUTION_NUM", "TARGET_TYPE_SYN"]
 
-FEATURE_TYPE = torch.float64
+FEATURE_TYPE = torch.float32
 TARGET_TYPE = torch.int16
 """When SYN_NUM_CLASSES=1, mean our synthetic data label is successive, we let label class is float"""
-TARGET_TYPE_SYN_CONS = torch.float64
+TARGET_TYPE_SYN_CONS = torch.float32
 """When SYN_NUM_CLASSES > 1, mean our synthetic data label is classified, we let label class is int"""
 TARGET_TYPE_SYN_CLASS = torch.int16
-VALUE_TYPE = torch.float64
+VALUE_TYPE = torch.float32
 
 """ Default 1 mean synthetic data label is successive, 
 other positive integers indicate that there are multiple categories"""
