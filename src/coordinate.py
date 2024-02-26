@@ -200,8 +200,7 @@ class Coordinator(object):
         """Initialize a controller instance."""
         if not self.registered_controller:
             self._controller_class = BaseController
-        kwargs = {
-        }
+        kwargs = {}
 
         self.controller = self._controller_class(self.conf, **kwargs)
 
@@ -266,7 +265,8 @@ class Coordinator(object):
                              head_byzantine_cnt=self.conf.graph.head_byzantine_cnt,
                              hand_byzantine_cnt=self.conf.graph.hand_byzantine_cnt,
                              connected_p=self.conf.graph.connectivity,
-                             castle_k=self.conf.graph.castle_k)
+                             castle_k=self.conf.graph.castle_k,
+                             conf=self.conf)
         # graph_.show()
         self.graph_ = graph_
 
@@ -295,16 +295,16 @@ class Coordinator(object):
             agg_class = self._agg_class
         else:
             agg_class = getattr(aggregations, self.conf.controller.aggregation_rule)
-        agg_class = agg_class(graph=self.graph_,
-                              max_iter=self.conf.aggregation_param.max_iter,
-                              eps=self.conf.aggregation_param.eps,
-                              krmu_m=self.conf.aggregation_param.krum_m,
-                              exact_byz_cnt=self.conf.aggregation_param.exact_byz_cnt,
-                              byz_cnt=self.conf.aggregation_param.byz_cnt,
-                              weight_mh=self.conf.aggregation_param.weight_mh,
-                              threshold_selection=self.conf.aggregation_param.threshold_selection,
-                              threshold=self.conf.aggregation_param.threshold)
-        self.agg_instance = agg_class
+        self.agg_instance = agg_class(graph=self.graph_,
+                                      max_iter=self.conf.aggregation_param.max_iter,
+                                      eps=self.conf.aggregation_param.eps,
+                                      krmu_m=self.conf.aggregation_param.krum_m,
+                                      exact_byz_cnt=self.conf.aggregation_param.exact_byz_cnt,
+                                      byz_cnt=self.conf.aggregation_param.byz_cnt,
+                                      weight_mh=self.conf.aggregation_param.weight_mh,
+                                      threshold_selection=self.conf.aggregation_param.threshold_selection,
+                                      threshold=self.conf.aggregation_param.threshold,
+                                      conf=self.conf)
         logger.info("The aggregation rule is {}.".format(self.conf.controller.aggregation_rule))
 
     def init_attack(self):
@@ -315,14 +315,14 @@ class Coordinator(object):
             attack_class = self._attack_class
         else:
             attack_class = getattr(attacks, self.conf.controller.attack_type)
-        attack_class = attack_class(graph=self.graph_,
-                                    use_honest_mean=self.conf.attacks_param.use_honest_mean,
-                                    mean=self.conf.attacks_param.mean,
-                                    std=self.conf.attacks_param.std,
-                                    sign_scale=self.conf.attacks_param.sign_scale,
-                                    sample_scale=self.conf.attacks_param.sample_scale,
-                                    little_scale=self.conf.attacks_param.little_scale)
-        self.attack_instance = attack_class
+        self.attack_instance = attack_class(graph=self.graph_,
+                                            use_honest_mean=self.conf.attacks_param.use_honest_mean,
+                                            mean=self.conf.attacks_param.mean,
+                                            std=self.conf.attacks_param.std,
+                                            sign_scale=self.conf.attacks_param.sign_scale,
+                                            sample_scale=self.conf.attacks_param.sample_scale,
+                                            little_scale=self.conf.attacks_param.little_scale,
+                                            conf=self.conf)
         logger.info("The byzantine attack type is {}.".format(self.conf.controller.attack_type))
 
     def register_dataset(self, train_data_iter, test_data_iter, val_data_iter=None):

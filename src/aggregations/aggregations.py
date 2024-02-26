@@ -21,7 +21,8 @@ class Mean(DistributedAggregation):
         If graph is centralized, we use CompleteGraph for default.
     """
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
+        self.conf = conf
         super(Mean, self).__init__(name='mean',
                                    graph=graph)
 
@@ -33,7 +34,8 @@ class Mean(DistributedAggregation):
 class NoCommunication(DistributedAggregation):
     """The node does not communicate with others, this method is not suite for centralized graph."""
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
+        self.conf = conf
         super(NoCommunication, self).__init__(name='no_communication',
                                               graph=graph)
 
@@ -46,10 +48,12 @@ class MeanWeightMH(DistributedAggregation):
     If graph is centralized, this equal the mean aggregation.
     """
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
+        self.conf = conf
         super(MeanWeightMH, self).__init__(name='meanWeightMH', graph=graph)
         self.selected_nodes_cid = list(range(self.graph.node_size))
         self.W = MeanWeightMH.mh_rule(self.graph, self.selected_nodes_cid)
+
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, *args, **kwargs):
         self.W = self.W.to(all_messages)
@@ -98,7 +102,8 @@ class MeanWeightMH(DistributedAggregation):
 class Median(DistributedAggregation):
     """Use median to aggregate."""
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
+        self.conf = conf
         super(Median, self).__init__(name='median', graph=graph)
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
@@ -118,11 +123,12 @@ class GeometricMedian(DistributedAggregation):
         the geometric median, else we use our way to calculate.
     """
 
-    def __init__(self, graph, max_iter=80, eps=1e-5, *args, **kwargs):
+    def __init__(self, graph, conf=None, max_iter=80, eps=1e-5, *args, **kwargs):
         super(GeometricMedian, self).__init__(name='geometric_median',
                                               graph=graph)
         self.max_iter = max_iter
         self.eps = eps
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         neighbor_messages = self.neighbor_messages_and_itself(all_messages, node, selected_nodes_cid)
@@ -163,8 +169,9 @@ class Krum(DistributedAggregation):
     Krum aggregation.
     """
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
         super(Krum, self).__init__(name='Krum', graph=graph)
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         neighbor_messages = self.neighbor_messages_and_itself(all_messages, node, selected_nodes_cid)
@@ -199,9 +206,10 @@ class MKrum(DistributedAggregation):
     Multi Krum aggregation.
     """
 
-    def __init__(self, graph, krum_m=2, *args, **kwargs):
+    def __init__(self, graph, conf=None, krum_m=2, *args, **kwargs):
         super(MKrum, self).__init__(name='MultiKrum', graph=graph)
         self.krum_m = krum_m
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         neighbor_messages = self.neighbor_messages_and_itself(all_messages, node, selected_nodes_cid)
@@ -233,11 +241,12 @@ class TrimmedMean(DistributedAggregation):
     By default, the two double actual number of Byzantines will be trimmed.
     """
 
-    def __init__(self, graph, exact_byz_cnt=True, byz_cnt=-1, *args, **kwargs):
+    def __init__(self, graph, conf=None, exact_byz_cnt=True, byz_cnt=-1, *args, **kwargs):
         super(TrimmedMean, self).__init__(name='trimmed_mean', graph=graph)
         self.exact_byz_cnt = exact_byz_cnt
         self.byz_cnt = byz_cnt
         self.estimate_byz_cnt_list = [0 for _ in range(self.graph.node_size)]
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         neighbor_messages = self.all_neighbor_messages(all_messages, node, selected_nodes_cid)
@@ -302,9 +311,10 @@ class TrimmedMean(DistributedAggregation):
 class RemoveOutliers(DistributedAggregation):
     """Remove Outliers aggregation."""
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
         super(RemoveOutliers, self).__init__(name='remove_outliers',
                                              graph=graph)
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         neighbor_messages = self.neighbor_messages_and_itself(all_messages, node,
@@ -329,8 +339,9 @@ class RemoveOutliers(DistributedAggregation):
 class Faba(DistributedAggregation):
     """FABA aggregation."""
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
         super(Faba, self).__init__(name='FABA', graph=graph)
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         neighbor_messages = self.neighbor_messages_and_itself(all_messages, node,
@@ -356,8 +367,9 @@ class Faba(DistributedAggregation):
 class Phocas(DistributedAggregation):
     """Phocas aggregation."""
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
         super(Phocas, self).__init__(name='Phocas', graph=graph)
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         neighbor_messages = self.neighbor_messages_and_itself(all_messages, node,
@@ -393,7 +405,7 @@ class IOS(DistributedAggregation):
     Notes: We use exact_byz_cnt , byz_cnt to control the trim way, is same as TrimmedMean.
     """
 
-    def __init__(self, graph, weight_mh=True, exact_byz_cnt=True, byz_cnt=-1, *args, **kwargs):
+    def __init__(self, graph, conf=None, weight_mh=True, exact_byz_cnt=True, byz_cnt=-1, *args, **kwargs):
         super(IOS, self).__init__(name="IOS", graph=graph)
         self.estimate_byz_cnt_list = None
         node_size = graph.number_of_nodes()
@@ -402,6 +414,7 @@ class IOS(DistributedAggregation):
         self.weight_mh = weight_mh
         self.selected_nodes_cid = list(range(self.graph.node_size))
         self.W = MeanWeightMH.mh_rule(self.graph, self.selected_nodes_cid)
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         neighbor_messages = self.all_neighbor_messages(all_messages, node, selected_nodes_cid)
@@ -492,8 +505,9 @@ class Brute(DistributedAggregation):
     Brute aggregation.
     """
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
         super(Brute, self).__init__(name='Brute', graph=graph)
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         neighbor_messages = self.neighbor_messages_and_itself(all_messages, node,
@@ -572,8 +586,9 @@ class Brute(DistributedAggregation):
 
 
 class Bulyan(DistributedAggregation):
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
         super(Bulyan, self).__init__(name='Bulyan', graph=graph)
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, *args, **kwargs):
         neighbor_messages = self.neighbor_messages_and_itself(all_messages, node, selected_nodes_cid)
@@ -620,7 +635,7 @@ class CenteredClipping(DistributedAggregation):
                     When threshold selection is "parameter", we use threshold to control the threshold.
     """
 
-    def __init__(self, graph, weight_mh=True, threshold_selection='estimation',
+    def __init__(self, graph, conf=None, weight_mh=True, threshold_selection='estimation',
                  threshold=10, *args, **kwargs):
         super(CenteredClipping, self).__init__(name="centered clipping", graph=graph)
         self.selected_nodes_cid = list(range(graph.node_size))
@@ -633,6 +648,7 @@ class CenteredClipping(DistributedAggregation):
         self.neighbors_select_honest_list = [x for x in graph.honest_neighbors]
         self.neighbors_select_byzantine_list = [x for x in graph.byzantine_neighbors]
         self.memory = None
+        self.conf = conf
 
     def run(self, all_messages, selected_nodes_cid, node=None, new_graph=None, *args, **kwargs):
         self.update_supporting_information(new_graph=new_graph, node=node, selected_nodes_cid=selected_nodes_cid)

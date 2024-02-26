@@ -12,8 +12,9 @@ class NoAttack(BaseAttack):
     No attack.
     """
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
         super(NoAttack, self).__init__(name='no_attack', graph=graph)
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         return all_messages
@@ -29,11 +30,12 @@ class Gaussian(BaseAttack):
    std: 1,10,50... The parameter of Gaussian attack, the gaussian distribution standard deviation.
     """
 
-    def __init__(self, graph, mean, std, use_honest_mean=False, *args, **kwargs):
+    def __init__(self, graph, mean, std, conf=None, use_honest_mean=False, *args, **kwargs):
         super(Gaussian, self).__init__(name='gaussian', graph=graph)
         self.mean = mean
         self.std = std
         self.use_honest_mean = use_honest_mean
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         base_messages = copy.deepcopy(all_messages)
@@ -64,10 +66,11 @@ class SignFlipping(BaseAttack):
     sign_scale: -4, -1, 3... The parameter of sign scale.
     """
 
-    def __init__(self, graph, use_honest_mean, sign_scale=-4, *args, **kwargs):
+    def __init__(self, graph, use_honest_mean, sign_scale=-4, conf=None, *args, **kwargs):
         super(SignFlipping, self).__init__(name='sign_flipping', graph=graph)
         self.use_honest_mean = use_honest_mean
         self.sign_scale = sign_scale
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         mean = None
@@ -92,10 +95,11 @@ class SampleDuplicating(BaseAttack):
    sample_scale: 1, 2, 3... The parameter of sample duplicating scale.
     """
 
-    def __init__(self, graph, use_honest_mean, sample_scale=1, *args, **kwargs):
+    def __init__(self, graph, use_honest_mean, sample_scale=1, conf=None, *args, **kwargs):
         super(SampleDuplicating, self).__init__(name='sample_duplicating', graph=graph)
         self.use_honest_mean = use_honest_mean
         self.sample_scale = sample_scale
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         base_messages = copy.deepcopy(all_messages)
@@ -113,8 +117,9 @@ class ZeroValue(BaseAttack):
     Zero value attack, byzantine sent the zero message.
     """
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
         super(ZeroValue, self).__init__(name='zero_value', graph=graph)
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         base_messages = copy.deepcopy(all_messages)
@@ -129,8 +134,9 @@ class Isolation(BaseAttack):
     Isolation attack, byzantine make the node get zero mean aggregation result..
     """
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, conf=None, *args, **kwargs):
         super(Isolation, self).__init__(name='isolation', graph=graph)
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         base_messages = copy.deepcopy(all_messages)
@@ -148,10 +154,11 @@ class LittleEnough(BaseAttack):
                         int means use the little_scale.
     """
 
-    def __init__(self, graph, little_scale=None, *args, **kwargs):
+    def __init__(self, graph, conf=None, little_scale=None, *args, **kwargs):
         super(LittleEnough, self).__init__(name='little_enough', graph=graph)
         self.little_scale = little_scale
         self.scale_table = [0] * self.graph.node_size
+        self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         base_messages = copy.deepcopy(all_messages)

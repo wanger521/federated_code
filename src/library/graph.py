@@ -170,7 +170,8 @@ class Graph:
 
 
 class CompleteGraph(Graph):
-    def __init__(self, node_size, byzantine_size, centralized, *args, **kwargs):
+    def __init__(self, node_size, byzantine_size, centralized, conf=None, *args, **kwargs):
+        self.conf = conf
         assert node_size > byzantine_size
         graph = nx.complete_graph(node_size)
 
@@ -183,7 +184,8 @@ class CompleteGraph(Graph):
 
 
 class ErdosRenyi(Graph):
-    def __init__(self, centralized, node_size, byzantine_size, connected_p=0.7, seed=None, *args, **kwargs):
+    def __init__(self, centralized, node_size, byzantine_size, connected_p=0.7, seed=None, conf=None, *args, **kwargs):
+        self.conf = conf
         graph = None
         rng = random if seed is None else random.Random(seed)
         valid = False
@@ -206,7 +208,8 @@ class TwoCastle(Graph):
     There are 2k nodes in the network totally
     """
 
-    def __init__(self, centralized, castle_k=5, byzantine_size=1, seed=None, *args, **kwargs):
+    def __init__(self, centralized, castle_k=5, byzantine_size=1, seed=None, conf=None,*args, **kwargs):
+        self.conf = conf
         """castle_k >= 3, byzantine_size <= castle_k-2"""
         assert castle_k >= 3, 'castle_k must be greater than or equal to 3'
         assert byzantine_size <= castle_k - 2, 'byzantine_size must be less than or equal to castle_k - 2'
@@ -235,7 +238,8 @@ class TwoCastle(Graph):
 
 
 class RingCastle(Graph):
-    def __init__(self, castle_cnt, byzantine_size, centralized, seed=None, *args, **kwargs):
+    def __init__(self, castle_cnt, byzantine_size, centralized, seed=None, conf=None, *args, **kwargs):
+        self.conf = conf
         name = "RingCastle_castle"
         honest_nodes = []
         byzantine_nodes = []
@@ -268,7 +272,8 @@ class RingCastle(Graph):
 
 
 class OctopusGraph(Graph):
-    def __init__(self, head_cnt, head_byzantine_cnt, hand_byzantine_cnt, centralized, *args, **kwargs):
+    def __init__(self, head_cnt, head_byzantine_cnt, hand_byzantine_cnt, centralized, conf=None, *args, **kwargs):
+        self.conf = conf
         assert head_cnt > head_byzantine_cnt
         assert head_cnt > hand_byzantine_cnt
         # head

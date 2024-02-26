@@ -54,7 +54,7 @@ def metric_plotter(metric_names, dataset, model, conf, extra, data_root="../../"
         data[metric_names[k]] = [[0 for _ in range(len(attack_types))] for _ in range(len(aggregation_rules))]
         parts = metric_names[k].split('_')
         if metric_names[k] == metric.TRAIN_STATIC_REGRET:
-            parts = ["adversary", " regret"]
+            parts = ["adversary", "regret"]
         y_label_list.append(' '.join(part.capitalize() for part in parts))
 
     y_lim_list = dict()
