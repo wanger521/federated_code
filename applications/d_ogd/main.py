@@ -70,6 +70,8 @@ def run():
                                                                                 "SampleDuplicating", "ZeroValue",
                                                                                 "Isolation", "LittleEnough"], help="")
     parser.add_argument("--seed", type=int, default=0, help="")
+    parser.add_argument("--use_honest_mean", type=int, default=1, choices=[0, 1],
+                        help="0 means attack does not use honest mean, 1 means use honest mean")
 
     args = parser.parse_args()
     logger.info(f"arguments: {args}")
@@ -95,9 +97,17 @@ def run():
         "lr_controller_param": {"init_lr": args.init_lr, "init_momentum": args.init_momentum},
         "aggregation_param": {"exact_byz_cnt": True, "byz_cnt": 0, "weight_mh": True,
                               "threshold_selection": "true", "threshold": 0.1},
-        "attacks_param": {"use_honest_mean": True, "sign_scale": -4, "little_scale": None},
+        "attacks_param": {"use_honest_mean": bool(args.use_honest_mean), "sign_scale": -4, "little_scale": None,
+                          "std": 1},
         "wandb_param": {"use_wandb": True, "project_name": "", "syn_to_web": True}
     }
+
+    # next two line just for th graduate experiment
+    if config["data"]["partition_type"] == "noniid_class_unbalance":
+        if config["data"]["dataset"] == "Mnist":
+            config["data"]["class_per_node"] = 1
+        elif config["data"]["dataset"] == "Cifar10":
+            config["data"]["class_per_node"] = 4
 
     if "node" in config:
         config["node"]["calculate_static_regret"] = True
@@ -131,6 +141,12 @@ def run():
     if args.dataset == "Mnist":
         config_online["lr_controller_param"]["init_lr"] = 0.1
         config_online["node"]["lr_controller"] = "ConstantLr"
+
+    if config["data"]["dataset"] == "Cifar100":
+        config_online["lr_controller_param"]["init_lr"] = config["lr_controller_param"]["init_lr"] \
+                                                          * 3
+        config_online["data"]["train_batch_size"] = config["data"]["train_batch_size"] * 4
+
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     #  If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.

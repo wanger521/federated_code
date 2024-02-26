@@ -7,6 +7,8 @@ import numpy as np
 
 from src.datas.make_data.trans_torch import StackedTorchDataPackage, StackedDataSet
 import matplotlib.pyplot as plt
+
+from src.library.cache_io import get_root_path
 from src.library.custom_exceptions import DataPartitionError
 from src.datas.partition.partition_unit import Partition, equal_division
 from src.library.logger import create_logger
@@ -44,7 +46,7 @@ class HorizontalPartition(Partition):
                      + str(data_distribution))
         return data_distribution
 
-    def draw_data_distribution(self):
+    def draw_data_distribution(self, new_labels=None):
         """
         Draw data distributions for all nodes,
         showing the distribution of data categories for each node through cumulative bar charts.
@@ -73,14 +75,24 @@ class HorizontalPartition(Partition):
         # Add Legend
         plt.legend(bbox_to_anchor=(1.05, 0), loc=3, borderaxespad=0)
 
-        for a, b, i in zip(x, sum_data, range(len(x))):
-            plt.text(a, int(b * 1.03), "%d" % sum_data[i], ha='center')
+        # for a, b, i in zip(x, sum_data, range(len(x))):
+        #     plt.text(a, int(b * 1.03), "%d" % sum_data[i], ha='center')
 
         # Setting the title and axis labels
-        ax.set_title(self.name + ' data distribution')
-        ax.set_xlabel('Nodes')
-        ax.set_ylabel('Sample number')
-        plt.xticks(x)
+        if new_labels is None:
+            ax.set_title(self.name + ' data distribution')
+            ax.set_xlabel('Nodes')
+            ax.set_ylabel('Sample number')
+            plt.xticks(x)
+            name = ""
+        else:
+            # ax.set_title(self.name + ' data distribution')
+            from matplotlib import font_manager
+            font = font_manager.FontProperties(fname="/usr/share/fonts/truetype/arphic-gbsn00lp/gbsn00lp.ttf")
+            ax.set_xlabel(new_labels["xlabel"], fontproperties=font, fontsize=13)
+            ax.set_ylabel(new_labels["ylabel"], fontproperties=font, fontsize=13)
+            plt.xticks(x, fontproperties=font)
+            name = new_labels["name"]
 
         # Adjust chart layout to prevent annotations from obscuring chart content
         plt.tight_layout()
@@ -91,10 +103,18 @@ class HorizontalPartition(Partition):
 
         # show picture
         plt.show()
+        picture_name = "{}_{}_{}.png".format(self.name, self.node_cnt, name)
+        path_list = ["record", "report", "picture", "partition"]
+        data_root = ""#"../../"
+        save_path = get_root_path(picture_name, path_list, data_root, create_if_not_exist=True)
+        fig.savefig(save_path, dpi=200, bbox_inches='tight')
+        plt.close()
 
 
 class EmptyPartition(HorizontalPartition):
     def __init__(self, dataset, node_cnt, *args, **kw):
+        self.dataset = dataset
+        self.node_cnt = node_cnt
         partition = [[] for _ in range(node_cnt)]
         super(EmptyPartition, self).__init__('EmptyPartition', partition)
 
@@ -115,6 +135,7 @@ class SuccessivePartition(HorizontalPartition):
 
         """
         self.dataset = dataset
+        self.node_cnt = node_cnt
         separation = [(i * len(self.dataset)) // node_cnt for i in range(node_cnt + 1)]
 
         partition = [list(range(separation[i], separation[i + 1]))
@@ -322,14 +343,25 @@ class NonIIDSeparation(HorizontalPartition):
         partition = [[] for _ in range(self.node_cnt)]
         flags = [0] * self.class_cnt
 
-        for i, (_, label) in enumerate(self.dataset):
-            label = self.class_idx_dict[label.item()]
-            if flags[label] != (self.parts_per_class - 1):
-                partition[(label + flags[label]) % self.node_cnt].append(i)
-                flags[label] += 1
-            else:
-                partition[(label + self.parts_per_class - 1) % self.node_cnt].append(i)
-                flags[label] = 0
+        if self.class_per_node*self.class_cnt < self.node_cnt:
+            self.parts_per_class = int(self.node_cnt / (self.class_per_node*self.class_cnt))
+            for i, (_, label) in enumerate(self.dataset):
+                label = self.class_idx_dict[label.item()]
+                if flags[label] != (self.parts_per_class - 1):
+                    partition[(label*self.parts_per_class + flags[label]) % self.node_cnt].append(i)
+                    flags[label] += 1
+                else:
+                    partition[(label*self.parts_per_class + self.parts_per_class - 1) % self.node_cnt].append(i)
+                    flags[label] = 0
+        else:
+            for i, (_, label) in enumerate(self.dataset):
+                label = self.class_idx_dict[label.item()]
+                if flags[label] != (self.parts_per_class - 1):
+                    partition[(label + flags[label]) % self.node_cnt].append(i)
+                    flags[label] += 1
+                else:
+                    partition[(label + self.parts_per_class - 1) % self.node_cnt].append(i)
+                    flags[label] = 0
 
         for tem in partition:
             if not tem:

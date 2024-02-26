@@ -3,6 +3,8 @@ import random
 import matplotlib.pyplot as plt
 import networkx as nx
 
+from src.library.cache_io import get_root_path
+
 
 def is_valid(nx_graph):
     return nx.connected.is_connected(nx_graph)
@@ -99,11 +101,12 @@ class Graph:
         """
         Show the graph in picture.
         """
-        NODE_COLOR_HONEST = '#99CCCC'
-        NODE_COLOR_BYZANTINE = '#FF6666'
+        NODE_COLOR_HONEST = '#3399CC'
+        NODE_COLOR_BYZANTINE = '#CC3300'
         NODE_COLOR_LOST = '#CCCCCC'
         EDGE_WIDTH = 2
 
+        fig, ax = plt.subplots(1, 1)
         # layout
         pos = nx.kamada_kawai_layout(self.nx_graph)
 
@@ -137,8 +140,17 @@ class Graph:
             nx.draw_networkx_labels(self.nx_graph, pos, label_dict,
                                     font_size=font_size)
 
+        ax.axis('off')  # Turn off the border
+
         if not as_subplot:
             plt.show()
+
+        picture_name = "{}.png".format(self.name)
+        path_list = ["record", "report", "picture", "graph"]
+        data_root = ""#"../../"
+        save_path = get_root_path(picture_name, path_list, data_root, create_if_not_exist=True)
+        fig.savefig(save_path, dpi=200, bbox_inches='tight')
+        plt.close()
 
     def __getstate__(self):
         state = {
@@ -210,6 +222,7 @@ class TwoCastle(Graph):
         # outer edges
         edges_list = [(i, j) for i in range(castle_k)
                       for j in range(castle_k, 2 * castle_k) if i + castle_k != j]
+        # edges_list = [(castle_k-1, castle_k)]
         graph.add_edges_from(edges_list)
         byzantine_nodes = rng.sample(graph.nodes(), byzantine_size)
         honest_nodes = [i for i in graph.nodes() if i not in byzantine_nodes]
