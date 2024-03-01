@@ -208,7 +208,7 @@ class TwoCastle(Graph):
     There are 2k nodes in the network totally
     """
 
-    def __init__(self, centralized, castle_k=5, byzantine_size=1, seed=None, conf=None,*args, **kwargs):
+    def __init__(self, centralized, castle_k=5, byzantine_size=1, seed=None, conf=None, *args, **kwargs):
         self.conf = conf
         """castle_k >= 3, byzantine_size <= castle_k-2"""
         assert castle_k >= 3, 'castle_k must be greater than or equal to 3'

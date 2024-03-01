@@ -15,7 +15,7 @@ graph:
   # Network connectivity
   connectivity: 0.7
   # The parameter of TwoCastle graph.
-  castle_k: 3
+  castle_k: 5
   # The parameter of RingCastle graph.
   castle_cnt: 2
   # The parameter of OctopusGraph graph.

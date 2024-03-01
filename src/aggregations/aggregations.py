@@ -190,7 +190,7 @@ class Krum(DistributedAggregation):
                 dist[i][j] = distance.data
                 dist[j][i] = distance.data
         # The distance from any node to itself must be 0.00, so we add 1 here
-        k = node_size - byzantine_size - 2 + 1
+        k = min(max(node_size - byzantine_size - 2 + 1, 1), node_size)
         top_v, _ = dist.topk(k=k, dim=1)
         scores = top_v.sum(dim=1)
         return scores.argmax()
@@ -220,6 +220,7 @@ class MKrum(DistributedAggregation):
     @staticmethod
     def m_krum(neighbor_messages, byzantine_size, m=2):
         remain = neighbor_messages
+        m = min(remain.size(0), m)
         result = torch.zeros_like(neighbor_messages[0], dtype=FEATURE_TYPE)
         for _ in range(m):
             res_index = Krum.krum_index(remain, byzantine_size)
@@ -252,11 +253,11 @@ class TrimmedMean(DistributedAggregation):
         neighbor_messages = self.all_neighbor_messages(all_messages, node, selected_nodes_cid)
         byzantine_size = self.estimate_byz_cnt_list[node]
         if 2 * byzantine_size >= len(neighbor_messages):
-            byzantine_size = len(neighbor_messages) // 2 - 1
+            byzantine_size = max(len(neighbor_messages) // 2 - 1, 0)
         agg_messages = TrimmedMean.trimmed_mean(neighbor_messages=neighbor_messages,
                                                 byzantine_size=byzantine_size)
         agg_messages = agg_messages.to(neighbor_messages)
-        trimmed_neighbor_size = len(neighbor_messages) - 2 * byzantine_size
+        trimmed_neighbor_size = max(len(neighbor_messages) - 2 * byzantine_size, 0)
         agg_messages = (agg_messages * trimmed_neighbor_size + all_messages[node]) / (trimmed_neighbor_size + 1)
         return torch.unsqueeze(agg_messages, dim=0)
 
@@ -265,7 +266,7 @@ class TrimmedMean(DistributedAggregation):
                                                               selected_nodes_cid)
         byzantine_size = self.estimate_byz_cnt_list[0]
         if 2 * byzantine_size >= len(selected_nodes_cid):
-            byzantine_size = len(selected_nodes_cid) // 2 - 1
+            byzantine_size = max(len(selected_nodes_cid) // 2 - 1, 0)
         return torch.unsqueeze(TrimmedMean.trimmed_mean(neighbor_messages=neighbor_messages,
                                                         byzantine_size=byzantine_size), dim=0)
 
@@ -383,6 +384,10 @@ class Phocas(DistributedAggregation):
     @staticmethod
     def phocas(neighbor_messages, byzantine_size):
         remain = neighbor_messages
+        if remain.size(0) <= 1:
+            return torch.mean(remain, dim=0)
+        if 2 * byzantine_size >= len(neighbor_messages):
+            byzantine_size = max(len(neighbor_messages) // 2 - 1, 0)
         mean = TrimmedMean.trimmed_mean(remain, byzantine_size)
         mean = mean.to(neighbor_messages)
         # remove the largest 'byzantine_size' model
@@ -390,6 +395,8 @@ class Phocas(DistributedAggregation):
             torch.norm(model - mean) for model in remain
         ])
         for _ in range(byzantine_size):
+            if remain.size(0) <= 1:
+                break
             remove_index = distances.argmax()
             remain = remain[torch.arange(remain.size(0)) != remove_index]
             distances = distances[torch.arange(distances.size(0)) != remove_index]

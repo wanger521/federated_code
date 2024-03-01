@@ -72,6 +72,8 @@ def run():
     parser.add_argument("--seed", type=int, default=0, help="")
     parser.add_argument("--use_honest_mean", type=int, default=1, choices=[0, 1],
                         help="0 means attack does not use honest mean, 1 means use honest mean")
+    parser.add_argument("--use_wandb", type=int, default=1, choices=[0, 1],
+                        help="0 means attack does not use use_wandb, 1 means use_wandb")
 
     args = parser.parse_args()
     logger.info(f"arguments: {args}")
@@ -99,7 +101,7 @@ def run():
                               "threshold_selection": "true", "threshold": 0.1},
         "attacks_param": {"use_honest_mean": bool(args.use_honest_mean), "sign_scale": -4, "little_scale": None,
                           "std": 1},
-        "wandb_param": {"use_wandb": True, "project_name": "", "syn_to_web": True}
+        "wandb_param": {"use_wandb": bool(args.use_wandb), "project_name": "", "syn_to_web": True}
     }
 
     # next two line just for th graduate experiment
@@ -147,7 +149,12 @@ def run():
                                                           * 3
         config_online["data"]["train_batch_size"] = config["data"]["train_batch_size"] * 4
 
-
+    if args.graph_type == "TwoCastle":
+        config["graph"]["castle_k"] = int(config["graph"]["nodes_cnt"] // 2)
+    if args.graph_type == "OctopusGraph":
+        config["graph"]["head_cnt"] = int(config["graph"]["nodes_cnt"] // 2)
+        config["graph"]["head_byzantine_cnt"] = int(config["graph"]["byzantine_cnt"]//2)
+        config["graph"]["hand_byzantine_cnt"] = config["graph"]["byzantine_cnt"] - config["graph"]["head_byzantine_cnt"]
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     #  If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.
     os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb=256"

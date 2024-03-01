@@ -256,6 +256,8 @@ class Coordinator(object):
 
         if self.conf.controller.attack_type == "NoAttack" and self.conf.graph.byzantine_cnt != 0:
             self.conf.graph.byzantine_cnt = 0
+            self.conf.graph.head_byzantine_cnt = 0
+            self.conf.graph.hand_byzantine_cnt = 0
             logger.info("Because the attack type is no attack, so we force to change the number of Byzantine "
                         "nodes in the graph to 0, otherwise it may affect model aggregation and training etc.")
 

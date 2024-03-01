@@ -42,7 +42,7 @@ def test_conf():
 def test_partition_class():
     # x = make_mnist.MakeMnist().test_set
     # y = make_cifar100.MakeCifar100().train_set
-    # y = make_mnist.MakeMnist().train_set
+    y = make_mnist.MakeMnist().train_set
     # y = make_cifar10.MakeCifar10().train_set
     # par = partition.IIDPartition(y, 30)
     # par = partition.NonIIDSeparation(y, 5)
@@ -52,30 +52,31 @@ def test_partition_class():
 
     # par = partition.SuccessivePartition(dataset=y, node_cnt=12)
     # par = partition.LabelSeparation(dataset=y, node_cnt=12)
-    # par = partition.NonIIDSeparation(dataset=y, node_cnt=30, class_per_node=1, data_balance=True)
+    par = partition.NonIIDSeparation(dataset=y, node_cnt=100, class_per_node=1, data_balance=False)
     # par = partition.NonIIDSeparation(dataset=y, node_cnt=30, class_per_node=1, data_balance=False)
-    # par = partition.NonIIDSeparation(dataset=y, node_cnt=10, class_per_node=4, data_balance=False)
+    # par = partition.NonIIDSeparation(dataset=y, node_cnt=30, class_per_node=4, data_balance=True)
     # par = partition.DirichletNonIID(dataset=y, node_cnt=30, alpha=0.1, min_size=10)
 
     # distribution = par.data_distribution
+    par.draw_data_distribution(new_labels={"xlabel": "参与者", "ylabel": "训练样本数量", "name": "Mnist-code"})
     # print(distribution)
 
-    datasets = ["Mnist", "Cifar10"]
-    for dataset in datasets:
-        node_cnt = 10
-        if dataset == "Mnist":
-            y = make_mnist.MakeMnist().train_set
-            node_cnt = 30
-            class_per_node = 1
-        elif dataset == "Cifar10":
-            y = make_cifar10.MakeCifar10().train_set
-            class_per_node = 4
-        par = partition.IIDPartition(y, node_cnt)
-        par.draw_data_distribution(new_labels={"xlabel": "参与者", "ylabel": "训练样本数量", "name": dataset})
-        par = partition.NonIIDSeparation(dataset=y, node_cnt=node_cnt, class_per_node=class_per_node, data_balance=False)
-        par.draw_data_distribution(new_labels={"xlabel": "参与者", "ylabel": "训练样本数量", "name": dataset})
-        par = partition.DirichletNonIID(dataset=y, node_cnt=node_cnt, alpha=0.1, min_size=10)
-        par.draw_data_distribution(new_labels={"xlabel": "参与者", "ylabel": "训练样本数量", "name": dataset})
+    # datasets = ["Cifar10"]#  ["Mnist", "Cifar10"]
+    # for dataset in datasets:
+    #     node_cnt = 5
+    #     if dataset == "Mnist":
+    #         y = make_mnist.MakeMnist().train_set
+    #         node_cnt = 30
+    #         class_per_node = 1
+    #     elif dataset == "Cifar10":
+    #         y = make_cifar10.MakeCifar10().train_set
+    #         class_per_node = 4
+    #     par = partition.IIDPartition(y, node_cnt)
+    #     par.draw_data_distribution(new_labels={"xlabel": "参与者", "ylabel": "训练样本数量", "name": dataset})
+    #     par = partition.NonIIDSeparation(dataset=y, node_cnt=node_cnt, class_per_node=class_per_node, data_balance=False)
+    #     par.draw_data_distribution(new_labels={"xlabel": "参与者", "ylabel": "训练样本数量", "name": dataset})
+    #     par = partition.DirichletNonIID(dataset=y, node_cnt=node_cnt, alpha=0.1, min_size=10)
+    #     par.draw_data_distribution(new_labels={"xlabel": "参与者", "ylabel": "训练样本数量", "name": dataset})
 
     print(y.__len__())
     return par
@@ -220,11 +221,11 @@ def test_graph():
     # graph = RingCastle(node_size=10, byzantine_size=1, castle_cnt=1)
     # graph = OctopusGraph(node_size=10, byzantine_size=1, castle_cnt=1, head_cnt=5,
     # graph_draw = ["CompleteGraph", "ErdosRenyi", "TwoCastle", "RingCastle", "OctopusGraph"]
-    graph_draw = ["TwoCastle"]  # "TwoCastle", "RingCastle"
+    graph_draw = ["OctopusGraph"]  # "TwoCastle", "RingCastle"
     for graph_type in graph_draw:
         graph_class = getattr(graph, graph_type)
-        graphs = graph_class(node_size=10, byzantine_size=2, castle_cnt=2, head_cnt=5,
-                             head_byzantine_cnt=1, hand_byzantine_cnt=1, connected_p=0.7, castle_k=5, centralized=False)
+        graphs = graph_class(node_size=30, byzantine_size=5, castle_cnt=2, head_cnt=15,
+                             head_byzantine_cnt=2, hand_byzantine_cnt=3, connected_p=0.7, castle_k=15, centralized=False)
         graphs.show()
 
 
