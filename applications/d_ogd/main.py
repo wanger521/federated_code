@@ -157,7 +157,7 @@ def run():
         config["graph"]["hand_byzantine_cnt"] = config["graph"]["byzantine_cnt"] - config["graph"]["head_byzantine_cnt"]
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     #  If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.
-    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb=256"
+    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb=1024"
 
     # wandb.init(project="my-online-mnist-project",
     #            config=config)

@@ -38,7 +38,8 @@ class Gaussian(BaseAttack):
         self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
-        base_messages = copy.deepcopy(all_messages)
+        # base_messages = copy.deepcopy(all_messages)
+        base_messages = all_messages
         if self.use_honest_mean:
             self.mean = torch.mean(all_messages[self.selected_honest_nodes_cid[node]], dim=0)
         for by_node in self.selected_byzantine_nodes_cid[node]:
@@ -74,7 +75,8 @@ class SignFlipping(BaseAttack):
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
         mean = None
-        base_messages = copy.deepcopy(all_messages)
+        # base_messages = copy.deepcopy(all_messages)
+        base_messages = all_messages
         if self.use_honest_mean:
             mean = torch.mean(base_messages[self.selected_honest_nodes_cid[node]], dim=0)
         for by_node in self.selected_byzantine_nodes_cid[node]:
@@ -102,7 +104,8 @@ class SampleDuplicating(BaseAttack):
         self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
-        base_messages = copy.deepcopy(all_messages)
+        # base_messages = copy.deepcopy(all_messages)
+        base_messages = all_messages
         if self.use_honest_mean:
             attack_message = torch.mean(base_messages[self.selected_honest_nodes_cid[node]], dim=0) * self.sample_scale
         else:
@@ -122,7 +125,8 @@ class ZeroValue(BaseAttack):
         self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
-        base_messages = copy.deepcopy(all_messages)
+        # base_messages = copy.deepcopy(all_messages)
+        base_messages = all_messages
         attack_message = torch.zeros(base_messages.size(1))
         for by_node in self.selected_byzantine_nodes_cid[node]:
             base_messages[by_node] = attack_message
@@ -139,7 +143,8 @@ class Isolation(BaseAttack):
         self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
-        base_messages = copy.deepcopy(all_messages)
+        # base_messages = copy.deepcopy(all_messages)
+        base_messages = all_messages
         attack_message = -1 * torch.sum(all_messages[self.selected_honest_nodes_cid[node]], dim=0) / max(
                                     len(self.selected_byzantine_nodes_cid[node]), 1)
         for by_node in self.selected_byzantine_nodes_cid[node]:
@@ -161,7 +166,8 @@ class LittleEnough(BaseAttack):
         self.conf = conf
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
-        base_messages = copy.deepcopy(all_messages)
+        # base_messages = copy.deepcopy(all_messages)
+        base_messages = all_messages
         mu = torch.mean(all_messages[self.selected_honest_nodes_cid[node]], dim=0)
         std = torch.std(all_messages[self.selected_honest_nodes_cid[node]], dim=0)
         attack_message = mu + self.scale_table[node] * std
