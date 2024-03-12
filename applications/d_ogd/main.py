@@ -79,6 +79,7 @@ def run():
     logger.info(f"arguments: {args}")
 
     config = {
+        "seed": args.seed,
         "data": {"dataset": args.dataset, "partition_type": args.partition_type,
                  "train_batch_size": args.batch_size, "test_rate": args.test_rate},
         "model": args.model,
