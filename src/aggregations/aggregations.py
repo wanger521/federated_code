@@ -94,6 +94,7 @@ class MeanWeightMH(DistributedAggregation):
                 if i == j or not graph.has_edge(j, i) or j not in selected_nodes_cid:
                     continue
                 j_n = len(list(set(graph.neighbors[j]).intersection(set(selected_nodes_cid)))) + 1
+                W[i][i] += W[i][j]
                 W[i][j] = 1 / max(i_n, j_n)
                 W[i][i] -= W[i][j]
         return W
@@ -478,6 +479,7 @@ class IOS(DistributedAggregation):
                     for j in range(graph.node_size):
                         if i == j or not graph.has_edge(j, i) or j not in selected_nodes_cid:
                             continue
+                        W[i][i] += W[i][j]
                         W[i][j] = 1 / max_degree
                         W[i][i] -= W[i][j]
         return W
