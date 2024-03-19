@@ -18,7 +18,8 @@ logger = create_logger()
 
 def run():
     parser = argparse.ArgumentParser(description='Online Application')
-    parser.add_argument("--dataset", default="Mnist", choices=["Mnist", "Cifar10", "Cifar100", "Synthetic"],
+    parser.add_argument("--dataset", default="Mnist", choices=["Mnist", "Cifar10", "Cifar100", "Synthetic",
+                                                               "FashionMnist", "ImageNet"],
                         help="dataset name", type=str)
     parser.add_argument("--batch_size", default=32, type=int)
     parser.add_argument("--partition_type", type=str, default="iid", choices=["iid", "successive", "empty", "share",

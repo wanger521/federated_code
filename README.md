@@ -55,7 +55,7 @@ For more advanced usage, we provide a list of tutorials on:
 * [Code-Structure](docs/tutorials/structure.md)
 
 ## Supported Functions:
-- **dataset**: `Mnist`, `Cifar10`, `Cifar100`, `Synthetic`
+- **dataset**: `Mnist`, `Cifar10`, `Cifar100`, `Synthetic`, `FashionMnist`, `ImageNet`
 - **partition_type**: `iid`, `successive`, `empty`, `share`, `noniid_class`, `noniid_class_unbalance`, `noniid_dir`
 - **model**: `rnn`, `resnet`, `resnet18`, `resnet50`, `vgg9`, `simple_cnn`, `softmax_regression`, `linear_regression`, `logistic_regression`
 - **aggregation_rule**: `Mean`, `MeanWeightMH`, `NoCommunication`, `Median`, `GeometricMedian`, `Krum`, `MKrum`, `TrimmedMean`, `RemoveOutliers`, `Faba`, `Phocas`, `IOS`, `Brute`, `Bulyan`, `CenteredClipping`, `SignGuard`, `Dnc`

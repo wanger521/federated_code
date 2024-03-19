@@ -16,7 +16,8 @@ logger = create_logger()
 
 def run():
     parser = argparse.ArgumentParser(description='Byrd Saga Application')
-    parser.add_argument("--dataset", default="Mnist", choices=["Mnist", "Cifar10", "Cifar100", "Synthetic"],
+    parser.add_argument("--dataset", default="Mnist", choices=["Mnist", "Cifar10", "Cifar100", "Synthetic",
+                                                               "FashionMnist", "ImageNet"],
                         help="dataset name", type=str)
     parser.add_argument("--batch_size", default=4, type=int)  # we suggest small batch_size for byrd_saga.
     parser.add_argument("--partition_type", type=str, default="iid", choices=["iid", "successive", "empty", "share",
