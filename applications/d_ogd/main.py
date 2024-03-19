@@ -65,10 +65,13 @@ def run():
                                                                                  "TrimmedMean",
                                                                                  "RemoveOutliers", "Faba", "Phocas",
                                                                                  "IOS", "Brute", "Bulyan",
-                                                                                 "CenteredClipping"], help="")
+                                                                                 "CenteredClipping", "SignGuard",
+                                                                                 "Dnc"],
+                        help="")
     parser.add_argument("--attack_type", type=str, default="NoAttack", choices=["NoAttack", "Gaussian", "SignFlipping",
                                                                                 "SampleDuplicating", "ZeroValue",
-                                                                                "Isolation", "LittleEnough"], help="")
+                                                                                "Isolation", "LittleEnough", "AGRFang",
+                                                                                "AGRTailored"], help="")
     parser.add_argument("--seed", type=int, default=0, help="")
     parser.add_argument("--use_honest_mean", type=int, default=1, choices=[0, 1],
                         help="0 means attack does not use honest mean, 1 means use honest mean")

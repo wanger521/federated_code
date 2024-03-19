@@ -88,7 +88,7 @@ controller:
   random_selection: True  # Whether select nodes to train randomly.
   # The rule to aggregate node uploaded models, options: "Mean",  "MeanWeightMH", "NoCommunication", "Median",
          #"GeometricMedian", "Krum", "MKrum", "TrimmedMean", "RemoveOutliers", "Faba", "Phocas", "IOS", "Brute", "Bulyan",
-        # "CenteredClipping"
+        # "CenteredClipping", "SignGuard", "Dnc"
     # FedAvg aggregates models using weighted average, where the weights are data size of nodes.
     # equal aggregates model by simple averaging.
   aggregation_rule: "Mean"
@@ -97,7 +97,7 @@ controller:
     # parameters means aggregating only model parameters.
   aggregation_content: "all"
   #Byzantine attack type,
-  # including "NoAttack", "Gaussian", "SignFlipping", "SampleDuplicating", "ZeroValue", "Isolation", "LittleEnough"
+  # including "NoAttack", "Gaussian", "SignFlipping", "SampleDuplicating", "ZeroValue", "Isolation", "LittleEnough", "AGRFang", "AGRTailored"
   attack_type: "NoAttack"
   # Whether Byzantine nodes are actually involved in training and aggregation.
   byzantine_actually_train: True
@@ -168,7 +168,15 @@ aggregation_param:
   # The parameter of CenteredClipping. The threshold choose way, including "estimation", "true", "parameter"
   threshold_selection: "parameter"
   # The parameter of CenteredClipping. When threshold selection is "parameter", we use threshold to control the threshold.
-  threshold:  0.1
+  threshold: 0.1
+  # The parameter of SignGuard.
+  left_norm: 0.1
+  right_norm: 3.0
+  n_clusters: 2
+  # The parameter of Dnc.
+  sub_dim: 10000
+  num_iters: 5
+  filter_frac: 1.0
 
 # The detail parameters of attacks.
 attacks_param:
@@ -187,6 +195,13 @@ attacks_param:
   # The parameter of LittleEnough attack. little_scale,  None, 1, 2,... A little is enough attack scale. None means auto calculate the perfect scale.
   #                                       int means use the little_scale.
   little_scale: None
+  # The parameter of AGRFang and AGRTailored.
+  agr_scale: 0.1
+  # The parameter of AGRTailored, True means byzantine base the aggregation rule to attack, False means byzantine base on the against_agg rule.
+  auto: True
+  # The parameter of AGRTailored, used when auto is False.
+  against_agg: "Median"
+
 
 tracking:  # The configurations for logging.
   log_file: ""

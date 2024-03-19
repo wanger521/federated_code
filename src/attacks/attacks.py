@@ -146,7 +146,7 @@ class Isolation(BaseAttack):
         # base_messages = copy.deepcopy(all_messages)
         base_messages = all_messages
         attack_message = -1 * torch.sum(all_messages[self.selected_honest_nodes_cid[node]], dim=0) / max(
-                                    len(self.selected_byzantine_nodes_cid[node]), 1)
+            len(self.selected_byzantine_nodes_cid[node]), 1)
         for by_node in self.selected_byzantine_nodes_cid[node]:
             base_messages[by_node] = attack_message
         return base_messages
@@ -202,3 +202,162 @@ class LittleEnough(BaseAttack):
                 self.scale_table = [self.little_scale] * self.graph.node_size
 
 
+class IPM(BaseAttack):
+    """
+    IPM attack, same with isolation, but with an epsilon.
+
+    Cong Xie, Oluwasanmi Koyejo, and Indranil Gupta. 2020. Fall of empires:
+    Breaking byzantine-tolerant sgd by inner product manipulation. In Uncertainty in
+    Artificial Intelligence. PMLR, 261–270.
+    """
+
+    def __init__(self, graph, epsilon=0.1, conf=None, *args, **kwargs):
+        super(IPM, self).__init__(name='ipm', graph=graph)
+        self.conf = conf
+        self.epsilon = epsilon
+
+    def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
+        # base_messages = copy.deepcopy(all_messages)
+        base_messages = all_messages
+        attack_message = -self.epsilon * torch.sum(all_messages[self.selected_honest_nodes_cid[node]], dim=0) / max(
+            len(self.selected_byzantine_nodes_cid[node]), 1)
+        for by_node in self.selected_byzantine_nodes_cid[node]:
+            base_messages[by_node] = attack_message
+        return base_messages
+
+
+class AGRFang(BaseAttack):
+    """
+    Base on unknown aggregation rule to attack.
+
+    Byzantine-Robust Learning on Heterogeneous Datasets via Bucketing. In International Conference
+    on Learning Representations.
+    """
+
+    def __init__(self, graph, conf=None, *args, **kwargs):
+        super(AGRFang, self).__init__(name='AGRFang', graph=graph)
+        self.conf = conf
+        self.agr_scale = self.conf.attacks_param.agr_scale
+
+    def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
+        base_messages = all_messages
+        honest_neighbors = self.selected_honest_nodes_cid[node]
+        mu = torch.mean(all_messages[honest_neighbors], dim=0)
+        mu_sign = torch.sign(mu)
+        # std = torch.std(local_models[honest_neighbors + [node]], dim=0)
+        attack_message = -self.agr_scale * mu_sign + mu
+        for by_node in self.selected_byzantine_nodes_cid[node]:
+            base_messages[by_node] = attack_message
+        return base_messages
+
+
+class AGRTailored(BaseAttack):
+    """
+    Base on used aggregation rule to attack.
+
+    Manipulating the byzantine: Optimizing model poisoning attacks and defenses for federated learning.
+    """
+
+    def __init__(self, graph, conf=None, *args, **kwargs):
+        super(AGRTailored, self).__init__(name='AGR-tailored', graph=graph)
+        self.conf = conf
+        self.agr_scale = self.conf.attacks_param.agr_scale
+        self.auto = self.agr_scale = self.conf.attacks_param.auto
+        self.aggregation_rule = self.conf.controller.aggregation_rule if self.auto is True \
+            else self.conf.attacks_param.against_agg
+
+    def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
+        base_messages = all_messages
+        if self.aggregation_rule == "TrimmedMean" or self.aggregation_rule == "Median":
+            attack_message = self.attack_median_and_trimmed_mean(all_messages, node)
+        elif self.aggregation_rule == "SignGuard":
+            attack_message = self.attack_sign_guard(all_messages, node)
+        else:
+            attack_message = self.default_fang(all_messages, node)
+        for by_node in self.selected_byzantine_nodes_cid[node]:
+            base_messages[by_node] = attack_message
+        return base_messages
+
+    def default_fang(self, all_messages, node):
+        honest_neighbors = self.selected_honest_nodes_cid[node]
+        mu = torch.mean(all_messages[honest_neighbors], dim=0)
+        mu_sign = torch.sign(mu)
+        attack_message = -self.agr_scale * mu_sign + mu
+        return attack_message
+
+    def attack_median_and_trimmed_mean(self, all_messages, node):
+        honest_neighbors = self.selected_honest_nodes_cid[node]
+        benign_updates = all_messages[honest_neighbors]
+        device = benign_updates.device
+        mean_grads = benign_updates.mean(dim=0)
+        deviation = torch.sign(mean_grads).to(device)
+        max_vec, _ = benign_updates.max(dim=0)
+        min_vec, _ = benign_updates.min(dim=0)
+        b = 2
+
+        neg_pos_mask = torch.logical_and(deviation == -1, max_vec > 0)
+        neg_neg_mask = torch.logical_and(deviation == -1, max_vec < 0)
+        pos_pos_mask = torch.logical_and(deviation == 1, min_vec > 0)
+        pos_neg_mask = torch.logical_and(deviation == 1, min_vec < 0)
+        zero_mask = deviation == 0
+
+        # Compute the result for different conditions using tensor operations
+        rand_neg_pos = torch.rand(neg_pos_mask.sum(), device=device)
+        rand_neg_max = torch.rand(neg_neg_mask.sum(), device=device)
+        rand_pos_min = torch.rand(pos_pos_mask.sum(), device=device)
+        rand_pos_neg = torch.rand(pos_neg_mask.sum(), device=device)
+
+        neg_pos_max = (
+                rand_neg_pos * ((b - 1) * max_vec[neg_pos_mask]) + max_vec[neg_pos_mask]
+        )
+        neg_neg_max = (
+                rand_neg_max * ((1 / b - 1) * max_vec[neg_neg_mask]) + max_vec[neg_neg_mask]
+        )
+        pos_pos_min = (
+                rand_pos_min * ((1 - 1 / b) * min_vec[pos_pos_mask])
+                + min_vec[pos_pos_mask] / b
+        )
+        pos_neg_min = (
+                rand_pos_neg * ((1 - b) * min_vec[pos_neg_mask]) + min_vec[pos_neg_mask] * b
+        )
+        result_zero = mean_grads[zero_mask].repeat(1)
+
+        # Combine the results
+        result = torch.zeros_like(mean_grads)
+        result[neg_pos_mask] = neg_pos_max
+        result[neg_neg_mask] = neg_neg_max
+        result[pos_pos_mask] = pos_pos_min
+        result[pos_neg_mask] = pos_neg_min
+        result[zero_mask] = result_zero
+
+        return result
+
+    def attack_sign_guard(self, all_messages, node):
+        honest_neighbors = self.selected_honest_nodes_cid[node]
+        benign_updates = all_messages[honest_neighbors]
+        device = benign_updates.device
+        mean_grads = benign_updates.mean(dim=0)
+
+        # l2norms = [torch.norm(update).item() for update in benign_updates]
+
+        # base_vector = find_orthogonal_unit_vector(mean_grads)
+        # return M * base_vector
+        num_para = len(mean_grads)
+        pos = (mean_grads > 0).sum().item()  # / num_para
+        neg = (mean_grads < 0).sum().item()  # / num_para
+        zeros = (mean_grads == 0).sum().item()  # / num_para
+        noise = torch.hstack(
+            [
+                torch.rand(pos, device=device),
+                -torch.rand(neg, device=device),
+                # torch.ones(pos, device=device),
+                # -torch.ones(neg, device=device),
+                torch.zeros(zeros, device=device),
+            ]
+        )
+
+        perm = torch.randperm(num_para)
+
+        # Shuffle the vector based on the generated permutation
+        update = noise[perm]
+        return update

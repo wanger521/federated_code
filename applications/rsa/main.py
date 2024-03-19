@@ -63,10 +63,13 @@ def run():
                                                                                  "TrimmedMean",
                                                                                  "RemoveOutliers", "Faba", "Phocas",
                                                                                  "IOS", "Brute", "Bulyan",
-                                                                                 "CenteredClipping"], help="")
+                                                                                 "CenteredClipping", "SignGuard",
+                                                                                 "Dnc"],
+                        help="")
     parser.add_argument("--attack_type", type=str, default="NoAttack", choices=["NoAttack", "Gaussian", "SignFlipping",
                                                                                 "SampleDuplicating", "ZeroValue",
-                                                                                "Isolation", "LittleEnough"], help="")
+                                                                                "Isolation", "LittleEnough", "AGRFang",
+                                                                                "AGRTailored"], help="")
     parser.add_argument("--seed", type=int, default=0, help="")
     # The RSA performance is sensitive to this lambda_rsa, small lambda_rsa is preferred.
     parser.add_argument("--lambda_rsa", type=float, default=0.001, help="the parameter of rsa")

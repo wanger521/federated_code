@@ -63,11 +63,23 @@ class HorizontalPartition(Partition):
         y_max = max(sum_data)
         x = range(len(labels))
         width = 0.35
+        # Calculate width based on the number of data points
+        num_data_points = len(x)
+        if num_data_points > 10:
+            width = 0.35
+        else:
+            width = 0.1 * (num_data_points / 5)
 
         # Initialize bottom_y element 0
         bottom_y = np.array([0] * len(labels))
 
-        fig, ax = plt.subplots()
+        # Calculate the fixed height for the plot
+        fig_height = 3
+        fig_width = 2.5 * fig_height
+
+        # plt.figure(figsize=(30, 10))
+        fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
         for i, y in enumerate(data):
             ax.bar(x, y, width, bottom=bottom_y, label=class_list[i])
             bottom_y = bottom_y + y
@@ -100,6 +112,7 @@ class HorizontalPartition(Partition):
         plt.grid(True, linestyle=':', alpha=0.6)
         # Adjust the length of the vertical coordinate
         plt.ylim(0, int(y_max * 1.1))
+
 
         # show picture
         plt.show()

@@ -58,8 +58,8 @@ For more advanced usage, we provide a list of tutorials on:
 - **dataset**: `Mnist`, `Cifar10`, `Cifar100`, `Synthetic`
 - **partition_type**: `iid`, `successive`, `empty`, `share`, `noniid_class`, `noniid_class_unbalance`, `noniid_dir`
 - **model**: `rnn`, `resnet`, `resnet18`, `resnet50`, `vgg9`, `simple_cnn`, `softmax_regression`, `linear_regression`, `logistic_regression`
-- **aggregation_rule**: `Mean`, `MeanWeightMH`, `NoCommunication`, `Median`, `GeometricMedian`, `Krum`, `MKrum`, `TrimmedMean`, `RemoveOutliers`, `Faba`, `Phocas`, `IOS`, `Brute`, `Bulyan`, `CenteredClipping`
-- **attack_type**: `NoAttack`, `Gaussian`, `SignFlipping`, `SampleDuplicating`, `ZeroValue`, `Isolation`, `LittleEnough`
+- **aggregation_rule**: `Mean`, `MeanWeightMH`, `NoCommunication`, `Median`, `GeometricMedian`, `Krum`, `MKrum`, `TrimmedMean`, `RemoveOutliers`, `Faba`, `Phocas`, `IOS`, `Brute`, `Bulyan`, `CenteredClipping`, `SignGuard`, `Dnc`
+- **attack_type**: `NoAttack`, `Gaussian`, `SignFlipping`, `SampleDuplicating`, `ZeroValue`, `Isolation`, `LittleEnough`, `AGRFang`, `AGRTailored`
 - **epoch_or_iteration**: `epoch`, `iteration`
 - **optimizer_type**: `SGD`, `Admm`
 - **graph_type**: `CompleteGraph`, `ErdosRenyi`, `TwoCastle`, `RingCastle`, `OctopusGraph`

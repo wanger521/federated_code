@@ -1,6 +1,9 @@
 import copy
 import itertools
 import math
+import statistics
+from sklearn.cluster import KMeans
+import numpy as np
 
 import torch
 
@@ -53,7 +56,6 @@ class MeanWeightMH(DistributedAggregation):
         super(MeanWeightMH, self).__init__(name='meanWeightMH', graph=graph)
         self.selected_nodes_cid = list(range(self.graph.node_size))
         self.W = MeanWeightMH.mh_rule(self.graph, self.selected_nodes_cid)
-
 
     def run_one_node(self, all_messages, selected_nodes_cid, node, *args, **kwargs):
         self.W = self.W.to(all_messages)
@@ -472,7 +474,7 @@ class IOS(DistributedAggregation):
                     if i not in selected_nodes_cid:
                         continue
                     neighbor_degree = len(list(set(graph.neighbors[i]).intersection(set(selected_nodes_cid))))
-                    max_degree = max(neighbor_degree+1, max_degree)
+                    max_degree = max(neighbor_degree + 1, max_degree)
                 for i in range(graph.node_size):
                     if i not in selected_nodes_cid:
                         continue
@@ -808,3 +810,108 @@ class CenteredClipping(DistributedAggregation):
             else:
                 cum_diff += weight * diff
         return local_model + cum_diff
+
+
+class SignGuard(DistributedAggregation):
+    """Aggregation rule in article
+    SignGuard: Byzantine-robust Federated Learning through Collaborative Malicious Gradient Filtering.
+    """
+
+    def __init__(self, graph, conf=None, *args, **kwargs):
+        self.conf = conf
+        super(SignGuard, self).__init__(name='SignGuard', graph=graph)
+        self.left_norm = self.conf.aggregation_param.left_norm
+        self.right_norm = self.conf.aggregation_param.right_norm
+        self.n_clusters = self.conf.aggregation_param.n_clusters
+        self.random_seed = self.conf.seed
+
+    def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
+        neighbor_messages = self.neighbor_messages_and_itself(all_messages, node, selected_nodes_cid)
+        list_norm = self.norm_filtering(neighbor_messages)
+        list_clustering = self.sign_clustering(neighbor_messages)
+        list_iter = list(set(list_norm).intersection(set(list_clustering)))
+        if len(list_iter) == 0:
+            list_iter = [0]
+        return torch.unsqueeze(torch.mean(neighbor_messages[list_iter], dim=0), dim=0)
+
+    def norm_filtering(self, neighbor_messages):
+        all_norm = [mes.norm() for mes in neighbor_messages]
+        median_norm = statistics.median(all_norm)
+        res_list = []
+        for i, norm in enumerate(all_norm):
+            tem = norm / median_norm
+            if self.right_norm >= tem >= self.left_norm:
+                res_list.append(i)
+        return neighbor_messages.median(dim=0).values
+
+    def sign_clustering(self, neighbor_messages):
+        num = len(neighbor_messages)
+        features = []
+        num_para = len(neighbor_messages[0])
+        for update in neighbor_messages:
+            feature0 = (update > 0).sum().item() / num_para
+            feature1 = (update < 0).sum().item() / num_para
+            feature2 = (update == 0).sum().item() / num_para
+
+            features.append([feature0, feature1, feature2])
+
+        kmeans = KMeans(n_clusters=self.n_clusters, random_state=self.random_seed, n_init="auto").fit(features)
+
+        flag = 1 if np.sum(kmeans.labels_) > num // 2 else 0
+        S2_idxs = list(
+            [idx for idx, label in enumerate(kmeans.labels_) if label == flag]
+        )
+
+        return S2_idxs
+
+
+class Dnc(DistributedAggregation):
+    """Aggregation rule in article to defence AGR attack.
+    Manipulating the Byzantine: Optimizing Model Poisoning Attacks and Defenses for Federated Learning.
+    """
+
+    def __init__(self, graph, conf=None, *args, **kwargs):
+        self.conf = conf
+        super(Dnc, self).__init__(name='Dnc', graph=graph)
+        self.sub_dim = self.conf.aggregation_param.sub_dim
+        self.num_iters = self.conf.aggregation_param.num_iters
+        self.filter_frac = self.conf.aggregation_param.filter_frac
+        self.num_byzantine = 0
+
+    def run_one_node(self, all_messages, selected_nodes_cid, node, new_graph=None, *args, **kwargs):
+        neighbor_messages = self.neighbor_messages_and_itself(all_messages, node, selected_nodes_cid)
+        byzantine_size = len(self.byzantine_neighbors_and_itself_select(node, selected_nodes_cid))
+        self.num_byzantine = byzantine_size
+        return torch.unsqueeze(self.dnc_agr(neighbor_messages), dim=0)
+
+    def dnc_agr(self, neighbor_messages):
+        updates = neighbor_messages
+        d = len(updates[0])
+
+        benign_ids = []
+        for i in range(self.num_iters):
+            indices = torch.randperm(d)[: self.sub_dim]
+            sub_updates = updates[:, indices]
+            mu = sub_updates.mean(dim=0)
+            centered_update = sub_updates - mu
+            v = torch.linalg.svd(centered_update, full_matrices=False)[2][0, :]
+            s = np.array(
+                [(torch.dot(update - mu, v) ** 2).item() for update in sub_updates]
+            )
+
+            good = s.argsort()[
+                   : len(updates) - int(self.filter_frac * self.num_byzantine)
+                   ]
+            benign_ids.append(good)
+
+        # Convert the first list to a set to start the intersection
+        intersection_set = set(benign_ids[0])
+
+        # Iterate over the rest of the lists and get the intersection
+        for lst in benign_ids[1:]:
+            intersection_set.intersection_update(lst)
+
+        # Convert the set to a list
+        benign_ids = list(intersection_set)
+        benign_updates = updates[benign_ids, :].mean(dim=0)
+        return benign_updates
