@@ -45,7 +45,8 @@ def run():
                                                                                     "DecreasingStepLr",
                                                                                     "FollowOne"],
                         help="learning rate type.")
-    parser.add_argument("--init_lr", type=float, default=0.1, help="")
+    parser.add_argument("--init_lr", type=float, default=0.1, help="For Synthetic data, recommend init_lr be small, "
+                                                                   "like 0.00001.")
     parser.add_argument("--init_momentum", type=float, default=0.1,
                         help="The momentum in SGD optimizer equal with 1-init_momentum")
     parser.add_argument("--graph_type", type=str, default="CompleteGraph", choices=["CompleteGraph", "ErdosRenyi",
