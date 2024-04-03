@@ -133,26 +133,25 @@ class ByrdSagaNode(BaseNode):
         Returns:
             :dict: The upload request.
         """
-        uploads = {"accuracy": self.test_accuracy, "loss": self.test_loss}
+        uploads = dict()
         try:
             if self._is_train:
-                uploads["model"] = self.compressed_model
-                # for self.conf.node.message_type_of_node_sent == "gradient"
-                uploads[
-                    "gradient_message"] = self.gradient_saga_message if self.gradient_saga_message is not None else 0
-                # TODO: upload train data size.
-                uploads["data_size"] = 1
+                uploads[metric.MODEL] = self.compressed_model
+                uploads[metric.GRADIENT_MESSAGE] = self.gradient_saga_message if self.gradient_saga_message is not None else 0
+                m = {metric.TRAIN_LOSS: self.train_loss[-1],
+                     metric.TRAIN_ACCURACY: self.train_accuracy[-1],
+                     metric.TRAIN_STATIC_REGRET: self.static_regret[-1],
+                     metric.LEARNING_RATE: self.lr, }
+                uploads[metric.METRIC] = m
+                uploads[metric.TRAIN_DATA_SIZE] = self.train_data_size
             else:
-                uploads["data_size"] = 1
+                uploads[metric.TEST_ACCURACY] = self.test_accuracy
+                uploads[metric.TEST_LOSS] = self.test_loss
+                uploads[metric.TEST_DATA_SIZE] = self.test_data_size
         except KeyError:
-            # When the datasize cannot be got from dataset, default to use equal aggregate
-            uploads["data_size"] = 1
+            #  When the datasize cannot be got from dataset, default to use equal aggregate
+            logger.error("the datasize cannot be got from dataset.")
 
-        m = {metric.TRAIN_LOSS: self.train_loss[-1],
-             metric.TRAIN_ACCURACY: self.train_accuracy[-1],
-             metric.TRAIN_STATIC_REGRET: self.static_regret[-1]} if self._is_train else None
-
-        uploads["metric"] = m
         uploads["task_id"] = self.conf.node.task_id
         uploads["round_id"] = self.conf.node.round_id
         uploads["node_id"] = self.cid

@@ -4,7 +4,6 @@ import logging
 import random
 import numpy as np
 
-
 from src.datas.make_data.trans_torch import StackedTorchDataPackage, StackedDataSet
 import matplotlib.pyplot as plt
 
@@ -12,7 +11,6 @@ from src.library.cache_io import get_root_path
 from src.library.custom_exceptions import DataPartitionError
 from src.datas.partition.partition_unit import Partition, equal_division
 from src.library.logger import create_logger
-
 
 logger = create_logger()
 
@@ -76,6 +74,8 @@ class HorizontalPartition(Partition):
         # Calculate the fixed height for the plot
         fig_height = 3
         fig_width = 2.5 * fig_height
+        if num_data_points < 10:
+            fig_width = 2 * fig_height
 
         # plt.figure(figsize=(30, 10))
         fig, ax = plt.subplots(figsize=(fig_width, fig_height))
@@ -85,18 +85,22 @@ class HorizontalPartition(Partition):
             bottom_y = bottom_y + y
 
         # Add Legend
-        plt.legend(bbox_to_anchor=(1.05, 0), loc=3, borderaxespad=0)
 
+        FONT_SIZE = 10
+        LABEL_SIZE = 8
+        LEGEND_SIZE = 10
+        plt.legend(bbox_to_anchor=(1.05, 0), loc=3, borderaxespad=0, fontsize=LEGEND_SIZE)
         # for a, b, i in zip(x, sum_data, range(len(x))):
         #     plt.text(a, int(b * 1.03), "%d" % sum_data[i], ha='center')
 
         # Setting the title and axis labels
-        if new_labels is None:
-            ax.set_title(self.name + ' data distribution')
-            ax.set_xlabel('Nodes')
-            ax.set_ylabel('Sample number')
+        if new_labels is None or len(new_labels) == 1:
+            # ax.set_title(self.name + ' data distribution')
+            ax.set_xlabel('Participants', fontsize=FONT_SIZE)
+            ax.set_ylabel('Sample Number', fontsize=FONT_SIZE)
             plt.xticks(x)
-            name = ""
+            ax.tick_params(axis='both', which='major', labelsize=LABEL_SIZE)
+            name = new_labels["name"]
         else:
             # ax.set_title(self.name + ' data distribution')
             from matplotlib import font_manager
@@ -113,12 +117,11 @@ class HorizontalPartition(Partition):
         # Adjust the length of the vertical coordinate
         plt.ylim(0, int(y_max * 1.1))
 
-
         # show picture
         plt.show()
         picture_name = "{}_{}_{}.png".format(self.name, self.node_cnt, name)
         path_list = ["record", "report", "picture", "partition"]
-        data_root = ""#"../../"
+        data_root = ""  # "../../"
         save_path = get_root_path(picture_name, path_list, data_root, create_if_not_exist=True)
         fig.savefig(save_path, dpi=200, bbox_inches='tight')
         plt.close()
@@ -356,15 +359,15 @@ class NonIIDSeparation(HorizontalPartition):
         partition = [[] for _ in range(self.node_cnt)]
         flags = [0] * self.class_cnt
 
-        if self.class_per_node*self.class_cnt < self.node_cnt:
-            self.parts_per_class = int(self.node_cnt / (self.class_per_node*self.class_cnt))
+        if self.class_per_node * self.class_cnt < self.node_cnt:
+            self.parts_per_class = int(self.node_cnt / (self.class_per_node * self.class_cnt))
             for i, (_, label) in enumerate(self.dataset):
                 label = self.class_idx_dict[label.item()]
                 if flags[label] != (self.parts_per_class - 1):
-                    partition[(label*self.parts_per_class + flags[label]) % self.node_cnt].append(i)
+                    partition[(label * self.parts_per_class + flags[label]) % self.node_cnt].append(i)
                     flags[label] += 1
                 else:
-                    partition[(label*self.parts_per_class + self.parts_per_class - 1) % self.node_cnt].append(i)
+                    partition[(label * self.parts_per_class + self.parts_per_class - 1) % self.node_cnt].append(i)
                     flags[label] = 0
         else:
             for i, (_, label) in enumerate(self.dataset):

@@ -61,7 +61,7 @@ def test_partition_class():
     # par.draw_data_distribution(new_labels={"xlabel": "Participants", "ylabel": "Sample Number", "name": "Mnist-code"})
     # print(distribution)
 
-    datasets = [ "Cifar102"]#  ["Mnist", "Cifar10", "Cifar102"]
+    datasets = ["Mnist", "Cifar10", "Cifar102"]#  ["Mnist", "Cifar10", "Cifar102"]
     for dataset in datasets:
         node_cnt = 5
         if dataset == "Mnist":
@@ -76,11 +76,11 @@ def test_partition_class():
             class_per_node = 4
             node_cnt = 10
         par = partition.IIDPartition(y, node_cnt)
-        par.draw_data_distribution(new_labels={"xlabel": "Participants", "ylabel": "Sample Number", "name": dataset})
+        par.draw_data_distribution(new_labels={"name": dataset})
         par = partition.NonIIDSeparation(dataset=y, node_cnt=node_cnt, class_per_node=class_per_node, data_balance=False)
-        par.draw_data_distribution(new_labels={"xlabel": "Participants", "ylabel": "Sample Number", "name": dataset})
+        par.draw_data_distribution(new_labels={"name": dataset})
         par = partition.DirichletNonIID(dataset=y, node_cnt=node_cnt, alpha=0.1, min_size=10)
-        par.draw_data_distribution(new_labels={"xlabel": "Participants", "ylabel": "Sample Number", "name": dataset})
+        par.draw_data_distribution(new_labels={"name": dataset})
 
     print(y.__len__())
     return par
