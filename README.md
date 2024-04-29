@@ -76,6 +76,7 @@ We have released the source code for the following papers under the `application
 - byrd_saga: [[code]](https://github.com/wanger521/federated_code/tree/master/applications/byrd_saga) for [Federated Variance-Reduced Stochastic Gradient Descent With Robustness to Byzantine Attacks](https://ieeexplore.ieee.org/abstract/document/9153949) (_TSP_)
 - d_ogd: [[code]](https://github.com/wanger521/federated_code/tree/master/applications/d_ogd) for two papers: [Byzantine-Robust Distributed Online Learning: Taming Adversarial Participants in An Adversarial Environment](https://ieeexplore.ieee.org/abstract/document/10354032) (_TSP_) and [Collaborative Unsupervised Visual Representation Learning From Decentralized Data](https://ieeexplore.ieee.org/document/10095178) (_ICASSP'2023_)
 - rsa: [[code]](https://github.com/wanger521/federated_code/tree/master/applications/rsa) for two papers: [RSA: Byzantine-Robust Stochastic Aggregation Methods for Distributed Learning from Heterogeneous Datasets](https://ojs.aaai.org/index.php/AAAI/article/view/3968) (_AAAI'2019_) and [Byzantine-robust decentralized stochastic optimization over static and time-varying networks](https://www.sciencedirect.com/science/article/pii/S0165168421000591) (_SP_)
+- IOS: [[code]](https://github.com/wanger521/federated_code/tree/master/src/aggregations/aggregations.py) for one papers: [Byzantine-Resilient Decentralized Stochastic Optimization With Robust Aggregation Rules](https://ieeexplore.ieee.org/document/10208131) (_TSP_) 
 
 
 ## License
